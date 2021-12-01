@@ -9,7 +9,7 @@ sudo tedge cert create --device-id=$C8YDEVICE
 
 sudo tedge cert show
 
-sudo tedge config set c8y.url thin-edge-io.eu-latest.cumulocity.com
+sudo tedge config set c8y.url pradeep.latest.stage.c8y.io
 
 sudo tedge config set c8y.root.cert.path /etc/ssl/certs
 
