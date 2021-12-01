@@ -22,7 +22,9 @@ class LogRequestVerifySearchTextError(EnvironmentC8y):
     operation_id = None
 
     def setup(self):
+        os.system("sudo rm -rf /var/log/tedge/agent/*")
         super().setup()
+        time.sleep(30)
         self.create_logs_for_test()
         self.addCleanupFunction(self.cleanup_logs)
 
@@ -66,7 +68,7 @@ class LogRequestVerifySearchTextError(EnvironmentC8y):
 
     def cleanup_logs(self):
         # Removing files form startProcess is not working
-        os.system("sudo rm -rf /var/log/tedge/agent/example-*")
+        os.system("sudo rm -rf /var/log/tedge/agent/*")
         if self.getOutcome().isFailure():
             log = self.startProcess(
                 command=self.sudo,
