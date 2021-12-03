@@ -87,7 +87,7 @@ class Cumulocity(object):
         return header
 
     def trigger_log_request(self, log_file_request_payload, device_id):
-        self.log.info("log response %s", self.url)
+        self.log.info("log response %s", self.c8y_url)
         self.log.info("log response %s", self.tenant_id)
         self.log.info("log response %s", self.username)
         self.log.info("log response %s", self.password)
