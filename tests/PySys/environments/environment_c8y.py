@@ -112,7 +112,7 @@ class Cumulocity(object):
     def retrieve_log_file(self, operation_id):
         """Check if log received"""
 
-        url = f"https://{self.c8y_url}/devicecontrol/operations/{operation_id}"
+        url = f"{self.c8y_url}/devicecontrol/operations/{operation_id}"
         req = requests.get(url, headers=self.get_header(),
                            timeout=self.timeout_req)
 
