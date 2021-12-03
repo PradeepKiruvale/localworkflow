@@ -31,7 +31,7 @@ class Cumulocity(object):
         self.tenant_id = tenant_id
         self.username = username
         self.password = password
-        self.timeout_req = 60  # seconds, got timeout with 60s
+        self.timeout_req = 80  # seconds, got timeout with 80s
         self.log = log
 
         self.auth = ('%s/%s' % (self.tenant_id, self.username), self.password)
