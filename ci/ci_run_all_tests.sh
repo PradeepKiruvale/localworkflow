@@ -40,5 +40,5 @@ python3 -m venv ~/env-pysys
 source ~/env-pysys/bin/activate
 sudo pip3 install -r tests/requirements.txt
 cd tests/PySys/
-pysys.py run log_request_error_messages log_request_num_lines -v DEBUG
+pysys.py run log_request_error_messages -v DEBUG
 deactivate
