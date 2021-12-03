@@ -61,6 +61,7 @@ class Cumulocity(object):
             "type": type,
             "pageSize": 100,
         }
+        self.log.info("url---->%s",self.c8y_url)
         res = requests.get(
             url=self.c8y_url + "/inventory/managedObjects", params=params, auth=self.auth)
         return self.to_json_response(res)
