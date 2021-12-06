@@ -53,7 +53,7 @@ def check_files_created():
         return True
     else:
         raise FailedToCreateLogs
-    
+
 if __name__ == "__main__":
     file_names = ["example-log1", "example-log2", "example-log3"]
     file_sizes = [50, 100, 250]

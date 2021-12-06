@@ -58,7 +58,7 @@ class LogRequestVerifyNumberOfLines(EnvironmentC8y):
         os.system(f"{os.getcwd()}/log_request_end_to_end/create_test_logs.py")
 
         # Copy files to /var/log/tedge/agent/
-        os.system("sudo cp -rf /tmp/sw_logs/* /var/log/tedge/agent/")
+        os.system("sudo mv -rf /tmp/sw_logs/* /var/log/tedge/agent/")
 
     def download_file_and_verify_number_of_lines(self, url):
         get_response = requests.get(url, auth=(
