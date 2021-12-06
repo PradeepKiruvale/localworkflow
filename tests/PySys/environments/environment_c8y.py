@@ -31,7 +31,7 @@ class Cumulocity(object):
         self.tenant_id = tenant_id
         self.username = username
         self.password = password
-        self.timeout_req = 80  # seconds, got timeout with 80s
+        self.timeout_req = 60  # seconds, got timeout with 60s
         self.log = log
 
         self.auth = ('%s/%s' % (self.tenant_id, self.username), self.password)
@@ -61,7 +61,6 @@ class Cumulocity(object):
             "type": type,
             "pageSize": 100,
         }
-        self.log.info("url---->%s",self.c8y_url)
         res = requests.get(
             url=self.c8y_url + "/inventory/managedObjects", params=params, auth=self.auth)
         return self.to_json_response(res)
@@ -87,10 +86,6 @@ class Cumulocity(object):
         return header
 
     def trigger_log_request(self, log_file_request_payload, device_id):
-        self.log.info("log response %s", self.c8y_url)
-        self.log.info("log response %s", self.tenant_id)
-        self.log.info("log response %s", self.username)
-        self.log.info("log response %s", self.password)
         url = f"{self.c8y_url}/devicecontrol/operations"
         log_file_request_payload = {
             "deviceId": device_id,

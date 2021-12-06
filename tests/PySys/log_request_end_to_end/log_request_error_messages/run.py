@@ -20,8 +20,7 @@ from environment_c8y import EnvironmentC8y
 
 class LogRequestVerifySearchTextError(EnvironmentC8y):
     operation_id = None
-    python = "/usr/bin/python3"
-
+    
     def setup(self):
         super().setup()
         self.create_logs_for_test()
@@ -59,7 +58,7 @@ class LogRequestVerifySearchTextError(EnvironmentC8y):
         os.system(f"{os.getcwd()}/log_request_end_to_end/create_test_logs.py")
        
         # Copy files to /var/log/tedge/agent/ 
-        os.system("sudo mv -rf /tmp/sw_logs/* /var/log/tedge/agent/")
+        os.system("sudo mv /tmp/sw_logs/* /var/log/tedge/agent/")
 
     def download_file_and_verify_error_messages(self, url):
         get_response = requests.get(url, auth=(
