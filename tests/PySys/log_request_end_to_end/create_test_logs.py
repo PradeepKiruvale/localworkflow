@@ -1,80 +1,67 @@
-import sys
-import time
+#!/usr/bin/python3
+
 import os
-import subprocess
-import requests
+from datetime import datetime, timedelta
+from random import randint, shuffle, seed
+from typing import Optional
 from retry import retry
+# this test will look at the date of current files in /var/log/tedge/agent/
+# and create example files with the same date.
+seed(100)
 
-"""
-Validate end to end behaviour for the log request operation.
+def read_example_log():
+    if not os.path.isdir("/var/log/tedge/agent"):
+        return None
 
-When we send a log request (for Error text with, 25 lines) from cumulocity to device and wait for some time.
-Then sm mapper receives the request and sends the response
-Validate if the response contains the log file for number of lines.
-If number of lines are 50 Error messages then pass the test
-Else stop and cleanup the operation by sending operation failed message.
-"""
-
-from environment_c8y import EnvironmentC8y
+    content = ""
+    for filename in os.listdir("/var/log/tedge/agent/"):
+        if "software-list" in filename:
+            content += open(f"/var/log/tedge/agent/{filename}", "r").read()
+    return content.splitlines()
 
 
-class LogRequestVerifySearchTextError(EnvironmentC8y):
-    operation_id = None
-    python = "/usr/bin/python3"
+ERROR_MESSAGES = [
+    f"Error: in line {randint(1, 10000)}.",
+    "Error: No such file or directory: /home/some/file",
+    "Error: Connection timed out. OS error 111.",
+    "Error: Is MQTT running?",
+    "Error: missing dependency mosquitto-clients."
+]
 
-    def setup(self):
-        super().setup()
-        self.create_logs_for_test()
-        self.addCleanupFunction(self.cleanup_logs)
 
-    def execute(self):
-        log_file_request_payload = {
-            "dateFrom": "2021-11-15T18:55:49+0530",
-            "dateTo": "2021-11-21T18:55:49+0530",
-            "logFile": "software-management",
-            "searchText": "Error",
-            "maximumLines": 25
-        }
-        self.operation_id = self.cumulocity.trigger_log_request(
-            log_file_request_payload, self.project.deviceid)
+def create_fake_logs(bad_lines_ratio=.3, num_lines=100) -> str:
+    error_lines_no = int(bad_lines_ratio * num_lines)
+    output = list()
+    for _ in range(error_lines_no):
+        output.append(ERROR_MESSAGES[randint(0, len(ERROR_MESSAGES) - 1)])
 
-    def validate(self):
-        self.assertThat("True == value",
-                        value=self.wait_until_logs_retrieved())
+    log = read_example_log()
+    if log is None:
+        raise Exception("No log file found.")
+    for _ in range(num_lines - error_lines_no):
+        output.append(log[randint(0, len(log) - 1)])
 
-    @retry(Exception, tries=20, delay=1)
-    def wait_until_logs_retrieved(self):
+    shuffle(output)
+    return "\n".join(output)
 
-        log_file = self.cumulocity.retrieve_log_file(self.operation_id)
-        if len(log_file) != 0:
-            return self.download_file_and_verify_error_messages(log_file)
-        else:
-            raise Exception("retry")
+class FailedToCreateLogs(Exception):
+    pass
 
-    def create_logs_for_test(self):
-        # remove if there are any old files
-        os.system("sudo rm -rf /tmp/sw_logs")
-        
-        #create logs
-        os.system(f"{os.getcwd()}/log_request_end_to_end/create_test_logs.py")
-       
-        # Copy files to /var/log/tedge/agent/ 
-        os.system("sudo cp -rf /tmp/sw_logs/* /var/log/tedge/agent/")
+@retry(FailedToCreateLogs, tries=20, delay=1)
+def check_files_created():
+    if len(os.listdir("/tmp/sw_logs")) == 3:
+        return True
+    else:
+        raise FailedToCreateLogs
+    
+if __name__ == "__main__":
+    file_names = ["example-log1", "example-log2", "example-log3"]
+    file_sizes = [50, 100, 250]
+    time_stamps = ["2021-11-18T13:15:10Z", "2021-11-19T21:15:10Z", "2021-11-20T13:15:10Z"]
+    os.mkdir("/tmp/sw_logs")
+    for idx, file_name in enumerate(file_names):
+        with open(f"/tmp/sw_logs/{file_name}-{time_stamps[idx]}.log", "w") as handle:
+            fake_log = create_fake_logs(num_lines=file_sizes[idx])
+            handle.write(fake_log)
+    check_files_created()
 
-    def download_file_and_verify_error_messages(self, url):
-        get_response = requests.get(url, auth=(
-            self.project.username, self.project.c8ypass), stream=False)
-        nlines = get_response.content.decode('utf-8')
-        return sum([1 if line.startswith("Error") else 0 for line in nlines.split("\n")]) == 25
-
-    def cleanup_logs(self):
-        # Removing files form startProcess is not working
-        os.system("sudo rm -rf /var/log/tedge/agent/example-*")
-        os.system("sudo rm -rf /tmp/sw_logs")
-        if self.getOutcome().isFailure():
-            log = self.startProcess(
-                command=self.sudo,
-                arguments=[self.tedge, "mqtt", "pub",
-                           "c8y/s/us", "502,c8y_LogfileRequest"],
-                stdouterr="send_failed",
-            )
