@@ -20,11 +20,10 @@ from environment_c8y import EnvironmentC8y
 
 class LogRequestVerifySearchTextError(EnvironmentC8y):
     operation_id = None
+    python = "/usr/bin/python3"
 
     def setup(self):
-        os.system("sudo rm -rf /var/log/tedge/agent/*")
         super().setup()
-        time.sleep(30)
         self.create_logs_for_test()
         self.addCleanupFunction(self.cleanup_logs)
 
@@ -45,20 +44,22 @@ class LogRequestVerifySearchTextError(EnvironmentC8y):
 
     @retry(Exception, tries=20, delay=1)
     def wait_until_logs_retrieved(self):
-       
+
         log_file = self.cumulocity.retrieve_log_file(self.operation_id)
         if len(log_file) != 0:
             return self.download_file_and_verify_error_messages(log_file)
         else:
             raise Exception("retry")
-      
+
     def create_logs_for_test(self):
-        log = self.startProcess(
-            command=self.sudo,
-            arguments=[
-                "python3", f"{os.getcwd()}/log_request_end_to_end/create_test_logs.py"],
-            stdouterr="log_failed",
-        )
+        # remove if there are any old files
+        os.system("sudo rm -rf /tmp/sw_logs")
+        
+        #create logs
+        os.system(f"{os.getcwd()}/log_request_end_to_end/create_test_logs.py")
+       
+        # Copy files to /var/log/tedge/agent/ 
+        os.system("sudo cp -rf /tmp/sw_logs/* /var/log/tedge/agent/")
 
     def download_file_and_verify_error_messages(self, url):
         get_response = requests.get(url, auth=(
@@ -68,7 +69,8 @@ class LogRequestVerifySearchTextError(EnvironmentC8y):
 
     def cleanup_logs(self):
         # Removing files form startProcess is not working
-        os.system("sudo rm -rf /var/log/tedge/agent/*")
+        os.system("sudo rm -rf /var/log/tedge/agent/example-*")
+        os.system("sudo rm -rf /tmp/sw_logs")
         if self.getOutcome().isFailure():
             log = self.startProcess(
                 command=self.sudo,
