@@ -23,6 +23,7 @@ class LogRequestVerifySearchTextError(EnvironmentC8y):
     
     def setup(self):
         super().setup()
+        time.sleep(5)
         self.create_logs_for_test()
         self.addCleanupFunction(self.cleanup_logs)
 
