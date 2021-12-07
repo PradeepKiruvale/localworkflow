@@ -86,6 +86,8 @@ class Cumulocity(object):
         return header
 
     def trigger_log_request(self, log_file_request_payload, device_id):
+        self.log.info("dev id %s",device_id)
+        self.log.info("dev id %s",self.c8y_url)
         url = f"{self.c8y_url}/devicecontrol/operations"
         log_file_request_payload = {
             "deviceId": device_id,
