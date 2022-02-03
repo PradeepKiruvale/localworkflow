@@ -3,37 +3,41 @@ name: update-tedge-reference-documents
 on:
   workflow_dispatch:
     branches: [main]
-  jobs:
+    
+env:
+  CARGO_TERM_COLOR: always
+  
+jobs:
     install-and-use-amd64:
       runs-on: Ubuntu-20.04
       
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - run: |
-          git config --global user.email "pradeepkiruvale@gmail.com"
-          git config --global user.name "pradeepkiruvale"
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+        - run: |
+           git config --global user.email "pradeepkiruvale@gmail.com"
+           git config --global user.name "pradeepkiruvale"
 
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
+        - name: Download artifact
+          uses: dawidd6/action-download-artifact@v2
         # https://github.com/marketplace/actions/download-workflow-artifact
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: build-workflow.yml
-          workflow_conclusion: success
-          branch: main
-          name: debian-packages-amd64
-          path: debian-package_unpack
+          with:
+            github_token: ${{secrets.GITHUB_TOKEN}}
+            workflow: build-workflow.yml
+            workflow_conclusion: success
+            branch: main
+            name: debian-packages-amd64
+            path: debian-package_unpack
           
-      - name: install packages
-        run: sudo dpkg -i ./debian-package_unpack/*.deb
-      - name: run the update script
-        run: ./doc/gen-ref-docs.sh
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
-        with:
-          commit-message: Create tedge docs
-          delete-branch: true
-          title: Create tedge docs
-          body: Create tedge docs
-          reviewers: Pradeep  
+        - name: install packages
+          run: sudo dpkg -i ./debian-package_unpack/*.deb
+        - name: run the update script
+          run: ./doc/gen-ref-docs.sh
+        - name: Create Pull Request
+          uses: peter-evans/create-pull-request@v3
+          with:
+            commit-message: Create tedge docs
+            delete-branch: true
+            title: Create tedge docs
+            body: Create tedge docs
+            reviewers: Pradeep  
