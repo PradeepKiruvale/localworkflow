@@ -62,4 +62,4 @@ jobs:
             delete-branch: true
             title: Create tedge docs
             body: Create tedge docs
-            reviewers: Pradeep  
+            reviewers: Pradeepkiruvale  
