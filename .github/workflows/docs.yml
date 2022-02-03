@@ -15,9 +15,6 @@ jobs:
            git config --global user.email "pradeepkiruvale@gmail.com"
            git config --global user.name "pradeepkiruvale"
            
-        - name: Checkout
-          uses: actions/checkout@v2
-
         - name: enable toolchain via github action
           # https://github.com/actions-rs/toolchain
           uses: actions-rs/toolchain@v1
@@ -57,7 +54,7 @@ jobs:
         # - name: install packages
         #   run: sudo dpkg -i ./debian-package_unpack/*.deb
         - name: run the update script
-          run: ./doc/gen-ref-docs.sh
+          run: ./docs/gen-ref-docs.sh
         - name: Create Pull Request
           uses: peter-evans/create-pull-request@v3
           with:
