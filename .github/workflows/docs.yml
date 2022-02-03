@@ -11,8 +11,8 @@ on:
       - name: Checkout
         uses: actions/checkout@v2
       - run: |
-          git config --global user.email "info@thin-edge.io"
-          git config --global user.name "Versioneer"
+          git config --global user.email "pradeepkiruvale@gmail.com"
+          git config --global user.name "pradeepkiruvale"
 
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
