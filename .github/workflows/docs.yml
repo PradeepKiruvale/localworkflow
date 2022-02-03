@@ -6,7 +6,7 @@ on:
   jobs:
     install-and-use-amd64:
       runs-on: Ubuntu-20.04
-
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -29,7 +29,7 @@ on:
         run: sudo dpkg -i ./debian-package_unpack/*.deb
       - name: run the update script
         run: ./doc/gen-ref-docs.sh
-       - name: Create Pull Request
+      - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
           commit-message: Create tedge docs
