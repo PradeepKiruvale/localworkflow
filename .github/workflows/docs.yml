@@ -25,20 +25,13 @@ jobs:
         - name: Enable cache
           # https://github.com/marketplace/actions/rust-cache
           uses: Swatinem/rust-cache@v1
-
-        - name: Install cargo-deb
+        
+        - name: Build tedge
           uses: actions-rs/cargo@v1
           # https://github.com/marketplace/actions/rust-cargo
           with:
-            command: install
-            args: cargo-deb --version 1.34.2
-
-        - name: Build tedge debian package
-          uses: actions-rs/cargo@v1
-          # https://github.com/marketplace/actions/rust-cargo
-          with:
-            command: deb
-            args: -p tedge
+            command: build
+            args: --release -p tedge
 
         # - name: Download artifact
         # uses: dawidd6/action-download-artifact@v2
