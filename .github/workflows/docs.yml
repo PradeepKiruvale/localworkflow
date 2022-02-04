@@ -1,8 +1,10 @@
 name: update-tedge-reference-documents
 
 on:
-  schedule:
-  - cron: "*/2 * * * *"
+  #schedule:
+  #- cron: "*/2 * * * *"
+  workflow_run:
+    branches: [main]
      
 jobs:
     install-and-use-amd64:
