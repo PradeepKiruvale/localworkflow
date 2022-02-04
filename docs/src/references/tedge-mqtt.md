@@ -1,7 +1,7 @@
 # The `tedge mqtt` command
 
 ```
-tedge-mqtt 0.2.0
+tedge-mqtt 0.4.4
 Publish a message on a topic and subscribe a topic
 
 USAGE:
@@ -20,7 +20,7 @@ SUBCOMMANDS:
 ## Pub
 
 ```
-tedge-mqtt-pub 0.2.0
+tedge-mqtt-pub 0.4.4
 Publish a MQTT message on a topic
 
 USAGE:
@@ -41,7 +41,7 @@ ARGS:
 ## Sub
 
 ```
-tedge-mqtt-sub 0.2.0
+tedge-mqtt-sub 0.4.4
 Subscribe a MQTT topic
 
 USAGE:
