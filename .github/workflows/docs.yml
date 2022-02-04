@@ -45,4 +45,4 @@ jobs:
             delete-branch: true
             title: Create tedge reference docs
             body: Create tedge reference docs
-            reviewers: itsyitsy  
+            reviewers: pradeepkiruvale  
