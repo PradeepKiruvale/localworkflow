@@ -371,7 +371,7 @@ async fn get_jwt_token_full_run() {
     // Given a background process that publish JWT tokens on demand.
     let broker = mqtt_tests::test_mqtt_broker();
     // wait for broker to start
-    sleep(Duration::from_millis(500)).await;
+    // sleep(Duration::from_millis(500)).await;
     broker.map_messages_background(|(topic, _)| {
         let mut response = vec![];
         if &topic == "c8y/s/uat" {
