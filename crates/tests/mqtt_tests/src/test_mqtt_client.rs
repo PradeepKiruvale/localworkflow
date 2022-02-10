@@ -99,7 +99,7 @@ where
     F: Send + Sync + Fn((String, String)) -> Vec<(String, String)>,
 {
     let mut con = TestCon::new(mqtt_port);
-    for _ in 0..5 {
+    for _ in 0..2 {
         match con.subscribe("#", QoS::AtLeastOnce).await {
             Ok(_) => 
                 {dbg!(".......Ok.............."); break;}
@@ -111,6 +111,7 @@ where
     }
 
     loop {
+        dbg!("send jwt response");
         if let Ok(message) = con.next_topic_payload().await {
             dbg!(&message);
             for (topic, response) in func(message).iter() {
