@@ -391,11 +391,20 @@ async fn get_jwt_token_full_run() {
         JwtAuthHttpProxy::new(mqtt_client, http_client, "test.tenant.com", "test-device");
 
     // ... fetches and returns these JWT tokens.
-    let jwt_token = http_proxy.get_jwt_token().await;
-        dbg!(&jwt_token);
+    for _ in 0..5 {
+        match http_proxy.get_jwt_token().await {
+            Ok(response) => {
+                assert_eq!(response.token(), "1111");
+                break;
+            }
+            Err(e) => {}
+        };
+    }
+    assert!(false);
+    //dbg!(&jwt_token);
     // `get_jwt_token` should return `Ok` and the value of token should be as set above `1111`.
-    assert!(jwt_token.is_ok());
-    assert_eq!(jwt_token.unwrap().token(), "1111");
+
+    //assert_eq!(jwt_token.token(), "1111");
 }
 
 fn remove_whitespace(s: &str) -> String {
