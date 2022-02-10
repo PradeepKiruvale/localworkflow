@@ -391,7 +391,7 @@ async fn get_jwt_token_full_run() {
         JwtAuthHttpProxy::new(mqtt_client, http_client, "test.tenant.com", "test-device");
 
     // ... fetches and returns these JWT tokens.
-    for _ in 0..5 {
+    for _ in 0..1 {
         match http_proxy.get_jwt_token().await {
             Ok(response) => {
                 assert_eq!(response.token(), "1111");

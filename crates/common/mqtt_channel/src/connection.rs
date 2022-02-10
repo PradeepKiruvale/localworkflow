@@ -151,7 +151,8 @@ impl Connection {
                 Ok(Event::Incoming(Packet::Publish(msg))) => {
                     // Errors on send are ignored: it just means the client has closed the receiving channel.
                     // One has to continue the loop though, because rumqttc relies on this polling.
-                    let _ = message_sender.send(msg.into()).await;
+                    let re = message_sender.send(msg.into()).await;
+                    dbg!(re);
                 }
 
                 Ok(Event::Incoming(Incoming::Disconnect))
