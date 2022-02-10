@@ -392,7 +392,7 @@ async fn get_jwt_token_full_run() {
 
     // ... fetches and returns these JWT tokens.
     let jwt_token = http_proxy.get_jwt_token().await;
-
+        dbg!(&jwt_token);
     // `get_jwt_token` should return `Ok` and the value of token should be as set above `1111`.
     assert!(jwt_token.is_ok());
     assert_eq!(jwt_token.unwrap().token(), "1111");

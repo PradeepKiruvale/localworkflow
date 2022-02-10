@@ -102,7 +102,7 @@ where
     for _ in 0..5 {
         match con.subscribe("#", QoS::AtLeastOnce).await {
             Ok(_) => {
-                break;
+                {dbg!(".......Ok.............."); break;}
             }
             Err(e) => {
                 dbg!(e);
