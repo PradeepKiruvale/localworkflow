@@ -12,6 +12,7 @@ use mqtt_tests::StreamExt;
 use serial_test::serial;
 use std::time::Duration;
 use tokio::task::JoinHandle;
+use tokio::time::sleep;
 
 const TEST_TIMEOUT_MS: Duration = Duration::from_millis(1000);
 
@@ -369,6 +370,8 @@ async fn mapper_publishes_software_update_request_with_wrong_action() {
 async fn get_jwt_token_full_run() {
     // Given a background process that publish JWT tokens on demand.
     let broker = mqtt_tests::test_mqtt_broker();
+    // wait for broker to start
+    sleep(Duration::from_millis(500)).await;
     broker.map_messages_background(|(topic, _)| {
         let mut response = vec![];
         if &topic == "c8y/s/uat" {
