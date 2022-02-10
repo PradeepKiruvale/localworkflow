@@ -109,7 +109,7 @@ where
     //     }
     // }
 
-    con.subscribe("#", QoS::AtLeastOnce)
+    con.subscribe("c8y/s/uat", QoS::AtLeastOnce)
         .await
         .expect("Fail to subscribe on #");
 
