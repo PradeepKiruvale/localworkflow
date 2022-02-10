@@ -370,15 +370,6 @@ async fn mapper_publishes_software_update_request_with_wrong_action() {
 async fn get_jwt_token_full_run() {
     // Given a background process that publish JWT tokens on demand.
     let broker = mqtt_tests::test_mqtt_broker();
-    // wait for broker to start
-    // sleep(Duration::from_millis(500)).await;
-    broker.map_messages_background(|(topic, _)| {
-        let mut response = vec![];
-        if &topic == "c8y/s/uat" {
-            response.push(("c8y/s/dat".into(), "71,1111".into()));
-        }
-        response
-    });
 
     // An JwtAuthHttpProxy ...
     let mqtt_config = mqtt_channel::Config::default()
@@ -390,6 +381,18 @@ async fn get_jwt_token_full_run() {
     let mut http_proxy =
         JwtAuthHttpProxy::new(mqtt_client, http_client, "test.tenant.com", "test-device");
 
+        
+    // wait for broker to start
+    // sleep(Duration::from_millis(500)).await;
+    broker.map_messages_background(|(topic, _)| {
+        let mut response = vec![];
+        if &topic == "c8y/s/uat" {
+            response.push(("c8y/s/dat".into(), "71,1111".into()));
+        }
+        response
+    });
+
+    
     // ... fetches and returns these JWT tokens.
     for _ in 0..1 {
         match http_proxy.get_jwt_token().await {
