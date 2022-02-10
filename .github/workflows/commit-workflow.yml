@@ -1,7 +1,6 @@
 name: commit-workflow
 
-on:
- 
+on: 
   workflow_dispatch:
     branches: [main]  
 
@@ -13,7 +12,6 @@ jobs:
   cargo-test:
     name: Run cargo test
     runs-on: Ubuntu-20.04
-    needs: [cargo-fmt, cargo-clippy]
 
     steps:
       - name: Checkout
@@ -34,10 +32,18 @@ jobs:
         # https://github.com/marketplace/actions/rust-cargo
         with:
           command: version
+          
+      - name: Cargo build dummy plugin
+        uses: actions-rs/cargo@v1
+        # https://github.com/marketplace/actions/rust-cargo
+        with:
+          command: build
+          args: -p tedge_dummy_plugin
+ 
 
       - name: Cargo test
         uses: actions-rs/cargo@v1
         # https://github.com/marketplace/actions/rust-cargo
         with:
           command: test
-          args:  -p tedge_mapper -- get_jwt_token_full_run --nocapture
+          args:  -- --nocapture
