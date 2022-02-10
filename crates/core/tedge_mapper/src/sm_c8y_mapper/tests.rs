@@ -395,7 +395,7 @@ async fn get_jwt_token_full_run() {
         match http_proxy.get_jwt_token().await {
             Ok(response) => {
                 assert_eq!(response.token(), "1111");
-                break;
+                return;
             }
             Err(e) => {}
         };
