@@ -271,7 +271,7 @@ impl C8YHttpProxy for JwtAuthHttpProxy {
             ))
             .await?;
         let token_smartrest = match tokio::time::timeout(
-            Duration::from_secs(10),
+            Duration::from_secs(20),
             self.mqtt_con.received.next(),
         )
         .await

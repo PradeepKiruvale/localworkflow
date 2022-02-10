@@ -101,9 +101,9 @@ where
     let mut con = TestCon::new(mqtt_port);
     for _ in 0..5 {
         match con.subscribe("#", QoS::AtLeastOnce).await {
-            Ok(_) => {
+            Ok(_) => 
                 {dbg!(".......Ok.............."); break;}
-            }
+            
             Err(e) => {
                 dbg!(e);
             }
