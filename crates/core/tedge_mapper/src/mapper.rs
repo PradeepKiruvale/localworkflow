@@ -9,7 +9,7 @@ use mqtt_channel::{
 };
 use tracing::{error, info, instrument};
 
-const SYNC_WINDOW: Duration = Duration::from_secs(3);
+const SYNC_WINDOW: Duration = Duration::from_secs(5);
 
 pub async fn create_mapper<'a>(
     app_name: &'a str,

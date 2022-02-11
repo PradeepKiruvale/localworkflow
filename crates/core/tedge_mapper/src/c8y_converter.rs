@@ -164,12 +164,13 @@ impl AlarmConverter {
 
     fn try_convert_alarm(&mut self, input: &Message) -> Result<Vec<Message>, ConversionError> {
         let mut vec: Vec<Message> = Vec::new();
-
+        
         match self {
             Self::Syncing {
                 pending_alarms_map,
                 old_alarms_map: _,
             } => {
+                dbg!("during sync", input);
                 let alarm_id = input
                     .topic
                     .name
@@ -179,6 +180,7 @@ impl AlarmConverter {
                 pending_alarms_map.insert(alarm_id.clone(), input.clone());
             }
             Self::Synced => {
+                dbg!("after sync", input);
                 //Regular conversion phase
                 let tedge_alarm =
                     ThinEdgeAlarm::try_from(input.topic.name.as_str(), input.payload_str()?)?;
@@ -210,6 +212,7 @@ impl AlarmConverter {
                 pending_alarms_map: _,
                 old_alarms_map,
             } => {
+                dbg!("during sync", input);
                 let alarm_id = input
                     .topic
                     .name
@@ -219,6 +222,7 @@ impl AlarmConverter {
                 old_alarms_map.insert(alarm_id, input.clone());
             }
             Self::Synced => {
+                dbg!("after sync", input);
                 // Ignore
             }
         }
