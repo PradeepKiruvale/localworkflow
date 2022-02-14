@@ -212,7 +212,7 @@ impl AlarmConverter {
                 pending_alarms_map: _,
                 old_alarms_map,
             } => {
-                dbg!("during sync{:?}", String::from_utf8_lossy(&input.payload));
+                dbg!("internal alarm during sync{:?}", String::from_utf8_lossy(&input.payload));
                 let alarm_id = input
                     .topic
                     .name
@@ -222,7 +222,7 @@ impl AlarmConverter {
                 old_alarms_map.insert(alarm_id, input.clone());
             }
             Self::Synced => {
-                dbg!("after sync{:?}", String::from_utf8_lossy(&input.payload));
+                dbg!("internal alarm after sync{:?}", String::from_utf8_lossy(&input.payload));
                 // Ignore
             }
         }
