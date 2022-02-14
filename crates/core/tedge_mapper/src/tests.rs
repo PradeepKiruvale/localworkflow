@@ -70,12 +70,13 @@ async fn c8y_mapper_alarm_mapping_to_smartrest() {
 #[serial]
 async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     let broker = mqtt_tests::test_mqtt_broker();
+    dbg!("starting broker");
 
     let mut messages = broker.messages_published_on("c8y/s/us").await;
-
+    dbg!("starting mapper");
     // Start the C8Y Mapper
     let c8y_mapper = start_c8y_mapper(broker.port).await.unwrap();
-
+    dbg!("publishing  critical/temperature_alarm");
     let _ = broker
         .publish_with_opts(
             "tedge/alarms/critical/temperature_alarm",
@@ -85,7 +86,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
         )
         .await
         .unwrap();
-
+    dbg!("waiting for critical/temperature_alarm");
     let mut msg = messages
         .next()
         .with_timeout(ALARM_SYNC_TIMEOUT_MS)
@@ -104,11 +105,12 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
         dbg!(&msg);
     }
 
-    // Expect converted temperature alarm message
+    dbg!("asserting critical/temperature_alarm mapping");
+    // Expect converted temperature alarm message 
     assert!(&msg.contains("301,temperature_alarm"));
-
+    dbg!("stopping mapper");
     c8y_mapper.abort();
-
+    dbg!("publishing critical/pressure_alarm");
     //Publish a new alarm while the mapper is down
     let _ = broker
         .publish_with_opts(
@@ -131,10 +133,10 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     )
     //     .await
     //     .unwrap();
-
+    dbg!("restart mapper");
     // Restart the C8Y Mapper
     let _ = start_c8y_mapper(broker.port).await.unwrap();
-
+    dbg!("waiting for critical/pressure_alarm");
     let mut msg = messages
         .next()
         .with_timeout(ALARM_SYNC_TIMEOUT_MS)
@@ -164,6 +166,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     // assert!(&msg.contains("306,temperature_alarm"));
 
     // Expect the new pressure alarm message
+    dbg!("asserting critical/pressure_alarm mapping");
     assert!(&msg.contains("301,pressure_alarm"));
 
     c8y_mapper.abort();

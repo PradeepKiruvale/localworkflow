@@ -74,12 +74,12 @@ impl Command for ConnectCommand {
             let br_config = self.bridge_config(&config)?;
             if self.check_if_bridge_exists(&br_config) {
                 return match self.check_connection(&config) {
-                    Ok(_) => {
+                    Ok(DeviceStatus::AlreadyExists) => {
                         let cloud = br_config.cloud_name.clone();
-                        println!("Connection check to {} cloud is successfull.\n", cloud);
+                        println!("Connection check to {} cloud is successful.\n", cloud);
                         Ok(())
                     }
-                    Err(err) => Err(err.into()),
+                   _ => Err(err.into()),
                 };
             } else {
                 return Err((ConnectError::DeviceNotConnected {
@@ -274,7 +274,7 @@ fn check_device_status_c8y(tedge_config: &TEdgeConfig) -> Result<DeviceStatus, C
             Ok(Event::Outgoing(Outgoing::PingReq)) => {
                 // No messages have been received for a while
                 println!("Local MQTT publish has timed out.");
-                break;
+                return Err(ConnectError::TimeoutElapsedError);
             }
             Ok(Event::Incoming(Incoming::Disconnect)) => {
                 eprintln!("ERROR: Disconnected");
@@ -291,6 +291,7 @@ fn check_device_status_c8y(tedge_config: &TEdgeConfig) -> Result<DeviceStatus, C
     if acknowledged {
         // The request has been sent but without a response
         Ok(DeviceStatus::Unknown)
+        
     } else {
         // The request has not even been sent
         println!("\nMake sure mosquitto is running.");
