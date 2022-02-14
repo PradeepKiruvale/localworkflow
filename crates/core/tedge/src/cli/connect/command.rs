@@ -74,12 +74,12 @@ impl Command for ConnectCommand {
             let br_config = self.bridge_config(&config)?;
             if self.check_if_bridge_exists(&br_config) {
                 return match self.check_connection(&config) {
-                    Ok(DeviceStatus::AlreadyExists) => {
+                    Ok(_) => {
                         let cloud = br_config.cloud_name.clone();
                         println!("Connection check to {} cloud is successful.\n", cloud);
                         Ok(())
                     }
-                   _ => Err(err.into()),
+                    Err(err) => Err(err.into()),
                 };
             } else {
                 return Err((ConnectError::DeviceNotConnected {
