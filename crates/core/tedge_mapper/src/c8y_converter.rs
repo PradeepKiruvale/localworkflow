@@ -170,7 +170,7 @@ impl AlarmConverter {
                 pending_alarms_map,
                 old_alarms_map: _,
             } => {
-                dbg!("during sync {:?}", String::from_utf8_lossy(&input.payload));
+                println!("alarm msg during sync: {:?}", input);
                 let alarm_id = input
                     .topic
                     .name
@@ -180,7 +180,7 @@ impl AlarmConverter {
                 pending_alarms_map.insert(alarm_id.clone(), input.clone());
             }
             Self::Synced => {
-                dbg!("after sync{:?}", String::from_utf8_lossy(&input.payload));
+                println!("alarm msg after sync: {:?}", input);
                 //Regular conversion phase
                 let tedge_alarm =
                     ThinEdgeAlarm::try_from(input.topic.name.as_str(), input.payload_str()?)?;
@@ -212,7 +212,7 @@ impl AlarmConverter {
                 pending_alarms_map: _,
                 old_alarms_map,
             } => {
-                dbg!("internal alarm during sync{:?}", String::from_utf8_lossy(&input.payload));
+                println!("internal msg b4 sync: {:?}", input);
                 let alarm_id = input
                     .topic
                     .name
@@ -222,7 +222,7 @@ impl AlarmConverter {
                 old_alarms_map.insert(alarm_id, input.clone());
             }
             Self::Synced => {
-                dbg!("internal alarm after sync{:?}", String::from_utf8_lossy(&input.payload));
+                println!("internal msg after sync: {:?}", input);
                 // Ignore
             }
         }
@@ -262,6 +262,7 @@ impl AlarmConverter {
                             let message = Message::new(&topic, vec![]).with_retain();
                             // Recreate the clear alarm message and add it to the pending alarms list to be processed later
                             sync_messages.push(message);
+                            dbg!("generating sync message");
                         }
 
                         // If the payload of a message received from tedge/alarms is same as one received from c8y-internal/alarms,

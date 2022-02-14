@@ -83,11 +83,12 @@ impl Mapper {
 
     #[instrument(skip(self), name = "messages")]
     async fn process_messages(&mut self) -> Result<(), MqttError> {
+        dbg!("initialize");
         let init_messages = self.converter.init_messages();
         for init_message in init_messages.into_iter() {
             let _ = self.output.send(init_message).await;
         }
-
+        dbg!("sync window started");
         // Start the sync phase here and process messages until the sync window times out
         let _ = tokio::time::timeout(SYNC_WINDOW, async {
             while let Some(message) = self.input.next().await {
@@ -95,18 +96,18 @@ impl Mapper {
             }
         })
         .await;
-
+        dbg!("sync window closed");
         // Once the sync phase is complete, retrieve all sync messages from the converter and process them
         let sync_messages = self.converter.sync_messages();
         for message in sync_messages {
             self.process_message(message).await;
         }
-
+        dbg!("sync complete");
         // Continue processing messages after the sync period
         while let Some(message) = self.input.next().await {
             self.process_message(message).await;
         }
-
+        dbg!("process complete");
         Ok(())
     }
 
