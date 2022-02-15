@@ -1,4 +1,5 @@
 use core::time;
+use std::thread;
 use std::time::Duration;
 
 use mqtt_tests::with_timeout::{Maybe, WithTimeout};
