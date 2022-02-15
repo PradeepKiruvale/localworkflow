@@ -370,6 +370,26 @@ async fn mapper_publishes_software_update_request_with_wrong_action() {
 async fn get_jwt_token_full_run() {
     // Given a background process that publish JWT tokens on demand.
     let broker = mqtt_tests::test_mqtt_broker();
+
+    let _sub1 = tokio::spawn(async move {
+        let topics = vec!["#"];
+        let mqtt_config = mqtt_channel::Config::default()
+            .with_port(55555)
+            .with_session_name("test-receiver-1")
+            .with_subscriptions(topics.try_into().unwrap());
+
+        let mut con = Connection::new(&mqtt_config).await.unwrap();
+        loop {
+            match con.received.next().await {
+                Some(mesg) => {
+                    println!("sub-1: {:?}", mesg);
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+    });
     // wait for broker to start
     // sleep(Duration::from_millis(500)).await;
     broker.map_messages_background(|(topic, _)| {
