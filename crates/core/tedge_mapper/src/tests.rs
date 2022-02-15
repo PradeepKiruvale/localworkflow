@@ -1,3 +1,4 @@
+use core::time;
 use std::time::Duration;
 
 use mqtt_tests::with_timeout::{Maybe, WithTimeout};
@@ -109,6 +110,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     // Expect converted temperature alarm message 
     assert!(&msg.contains("301,temperature_alarm"));
     dbg!("stopping mapper");
+    thread::sleep(time::Duration::from_secs(2));
     c8y_mapper.abort();
     dbg!("publishing critical/pressure_alarm");
     //Publish a new alarm while the mapper is down
