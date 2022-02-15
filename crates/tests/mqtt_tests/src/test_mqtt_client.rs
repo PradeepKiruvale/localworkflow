@@ -230,12 +230,13 @@ impl TestCon {
                     let msg = std::str::from_utf8(&packet.payload)
                         .unwrap_or("Error: non-utf8-payload")
                         .to_string();
+                    dbg!("publish");    
                     return Ok((topic, msg));
                 }
                 Err(err) => {
                     return Err(err)?;
                 }
-                _ => {}
+                _ => {dbg!("reject msg");}
             }
         }
     }
