@@ -79,8 +79,32 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
 
     let mut messages = broker.messages_published_on("c8y/s/us").await;
     dbg!("starting mapper");
+    let mut internal_messages = broker
+        .messages_published_on("c8y-internal/alarms/+/+")
+        .await;
+
+    let sub1 = tokio::spawn(async move {
+        let topics = vec!["tedge/alarms/+/+", "c8y-internal/alarms/+/+"];
+        let mqtt_config = mqtt_channel::Config::default()
+            .with_port(55555)
+            .with_session_name("test-receiver-1")
+            .with_subscriptions(topics.try_into().unwrap());
+        let mut con = Connection::new(&mqtt_config).await.unwrap();
+        loop {
+            match con.received.next().await {
+                Some(mesg) => {
+                    println!("sub-1: {:?}", mesg);
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+    });
+
     // Start the C8Y Mapper
     let c8y_mapper = start_c8y_mapper(broker.port).await.unwrap();
+
     dbg!("publishing  critical/temperature_alarm");
     let _ = broker
         .publish_with_opts(
@@ -97,6 +121,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
         .with_timeout(ALARM_SYNC_TIMEOUT_MS)
         .await
         .expect_or("No message received before timeout");
+
     dbg!(&msg);
 
     // The first message could be SmartREST 114 for supported operations
@@ -113,9 +138,18 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     dbg!("asserting critical/temperature_alarm mapping");
     // Expect converted temperature alarm message
     assert!(&msg.contains("301,temperature_alarm"));
+
+    let imsg = internal_messages
+        .next()
+        .with_timeout(ALARM_SYNC_TIMEOUT_MS)
+        .await
+        .expect_or("No message received before timeout");
+    println!("{}", imsg);
+    assert!(&imsg.contains("Temperature very high"));
+    tokio::time::sleep(time::Duration::from_secs(10)).await;
     dbg!("stopping mapper");
-    thread::sleep(time::Duration::from_secs(2));
     c8y_mapper.abort();
+    sub1.abort();
     dbg!("publishing critical/pressure_alarm");
     //Publish a new alarm while the mapper is down
     let _ = broker
@@ -139,23 +173,21 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     )
     //     .await
     //     .unwrap();
+    tokio::time::sleep(time::Duration::from_secs(70)).await;
     dbg!("restart mapper");
     // Restart the C8Y Mapper
-    let _ = start_c8y_mapper(broker.port).await.unwrap();
-    dbg!("waiting for critical/pressure_alarm");
-    // start a subscriber
-    let mqtt_config = mqtt_channel::Config::default()
-        .with_port(55555)
-        .with_session_name("test-receiver")
-        .with_subscriptions(TopicFilter::new_unchecked("tedge/alarms/+/+"));
+    let _sub1 = tokio::spawn(async move {
+        let topics = vec!["tedge/alarms/+/+", "c8y-internal/alarms/+/+"];
+        let mqtt_config = mqtt_channel::Config::default()
+            .with_port(55555)
+            .with_session_name("test-receiver-1")
+            .with_subscriptions(topics.try_into().unwrap());
 
-    let mut con = Connection::new(&mqtt_config).await.unwrap();
-
-    tokio::spawn(async move {
+        let mut con = Connection::new(&mqtt_config).await.unwrap();
         loop {
             match con.received.next().await {
                 Some(mesg) => {
-                    println!("received mesg by sub: {:?}", mesg);
+                    println!("sub-1: {:?}", mesg);
                 }
                 _ => {
                     break;
@@ -163,6 +195,29 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
             }
         }
     });
+
+    let _sub2 = tokio::spawn(async move {
+        let topics = vec!["tedge/alarms/+/+", "c8y-internal/alarms/+/+"];
+        let mqtt_config = mqtt_channel::Config::default()
+            .with_port(55555)
+            .with_session_name("test-receiver-2")
+            .with_subscriptions(topics.try_into().unwrap());
+        let mut con = Connection::new(&mqtt_config).await.unwrap();
+        loop {
+            match con.received.next().await {
+                Some(mesg) => {
+                    println!("sub-2: {:?}", mesg);
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+    });
+
+    let _ = start_c8y_mapper(broker.port).await.unwrap();
+    dbg!("waiting for critical/pressure_alarm");
+
     let mut msg = messages
         .next()
         .with_timeout(ALARM_SYNC_TIMEOUT_MS)
