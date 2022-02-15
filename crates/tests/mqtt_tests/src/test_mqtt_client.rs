@@ -101,8 +101,10 @@ where
     let mut con = TestCon::new(mqtt_port);
     for _ in 0..4 {
         match con.subscribe("c8y/s/uat", QoS::AtLeastOnce).await {
-            Ok(_) =>
-                {dbg!(".......Ok.............."); break;}
+            Ok(_) => {
+                dbg!(".......Ok..............");
+                break;
+            }
             Err(e) => {
                 dbg!(e);
             }
@@ -152,7 +154,9 @@ impl TestCon {
                 Err(err) => {
                     return Err(err)?;
                 }
-                _ => {dbg!("consume msg");}
+                _ => {
+                    dbg!("consume msg");
+                }
             }
         }
     }

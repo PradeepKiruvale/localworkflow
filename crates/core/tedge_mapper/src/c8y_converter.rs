@@ -5,6 +5,7 @@ use crate::{converter::*, operations::Operations};
 use c8y_smartrest::alarm;
 use c8y_smartrest::smartrest_serializer::{SmartRestSerializer, SmartRestSetSupportedOperations};
 use c8y_translator::json;
+use chrono::Utc;
 use mqtt_channel::{Message, Topic};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
@@ -164,7 +165,7 @@ impl AlarmConverter {
 
     fn try_convert_alarm(&mut self, input: &Message) -> Result<Vec<Message>, ConversionError> {
         let mut vec: Vec<Message> = Vec::new();
-        
+
         match self {
             Self::Syncing {
                 pending_alarms_map,
@@ -262,7 +263,7 @@ impl AlarmConverter {
                             let message = Message::new(&topic, vec![]).with_retain();
                             // Recreate the clear alarm message and add it to the pending alarms list to be processed later
                             sync_messages.push(message);
-                            dbg!("generating sync message");
+                            println!("{} ,generating sync message", Utc::now());
                         }
 
                         // If the payload of a message received from tedge/alarms is same as one received from c8y-internal/alarms,

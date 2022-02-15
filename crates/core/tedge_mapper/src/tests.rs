@@ -2,11 +2,14 @@ use core::time;
 use std::thread;
 use std::time::Duration;
 
+use chrono::Utc;
+use mqtt_channel::{Connection, Message, TopicFilter};
 use mqtt_tests::with_timeout::{Maybe, WithTimeout};
 use mqtt_tests::StreamExt;
 use serial_test::serial;
 use tokio::task::JoinHandle;
 
+use crate::mapper::mqtt_config;
 use crate::{
     c8y_converter::CumulocityConverter, mapper::create_mapper, size_threshold::SizeThreshold,
 };
@@ -72,7 +75,7 @@ async fn c8y_mapper_alarm_mapping_to_smartrest() {
 #[serial]
 async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     let broker = mqtt_tests::test_mqtt_broker();
-    dbg!("starting broker");
+    println!("{} starting broker", Utc::now());
 
     let mut messages = broker.messages_published_on("c8y/s/us").await;
     dbg!("starting mapper");
@@ -108,7 +111,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     }
 
     dbg!("asserting critical/temperature_alarm mapping");
-    // Expect converted temperature alarm message 
+    // Expect converted temperature alarm message
     assert!(&msg.contains("301,temperature_alarm"));
     dbg!("stopping mapper");
     thread::sleep(time::Duration::from_secs(2));
@@ -140,6 +143,26 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     // Restart the C8Y Mapper
     let _ = start_c8y_mapper(broker.port).await.unwrap();
     dbg!("waiting for critical/pressure_alarm");
+    // start a subscriber
+    let mqtt_config = mqtt_channel::Config::default()
+        .with_port(55555)
+        .with_session_name("test-receiver")
+        .with_subscriptions(TopicFilter::new_unchecked("tedge/alarms/+/+"));
+
+    let mut con = Connection::new(&mqtt_config).await.unwrap();
+
+    tokio::spawn(async move {
+        loop {
+            match con.received.next().await {
+                Some(mesg) => {
+                    println!("received mesg by sub: {:?}", mesg);
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+    });
     let mut msg = messages
         .next()
         .with_timeout(ALARM_SYNC_TIMEOUT_MS)

@@ -291,7 +291,6 @@ fn check_device_status_c8y(tedge_config: &TEdgeConfig) -> Result<DeviceStatus, C
     if acknowledged {
         // The request has been sent but without a response
         Ok(DeviceStatus::Unknown)
-        
     } else {
         // The request has not even been sent
         println!("\nMake sure mosquitto is running.");

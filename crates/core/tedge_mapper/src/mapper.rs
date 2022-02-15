@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::converter::*;
 use crate::error::*;
+use chrono::Utc;
 
 use mqtt_channel::{
     Connection, Message, MqttError, SinkExt, StreamExt, TopicFilter, UnboundedReceiver,
@@ -83,12 +84,12 @@ impl Mapper {
 
     #[instrument(skip(self), name = "messages")]
     async fn process_messages(&mut self) -> Result<(), MqttError> {
-        dbg!("initialize");
+        println!("{} initialize", Utc::now());
         let init_messages = self.converter.init_messages();
         for init_message in init_messages.into_iter() {
             let _ = self.output.send(init_message).await;
         }
-        dbg!("sync window started");
+        println!("{} sync window started", Utc::now());
         // Start the sync phase here and process messages until the sync window times out
         let _ = tokio::time::timeout(SYNC_WINDOW, async {
             while let Some(message) = self.input.next().await {
@@ -96,18 +97,18 @@ impl Mapper {
             }
         })
         .await;
-        dbg!("sync window closed");
+        println!("{} sync window closed", Utc::now());
         // Once the sync phase is complete, retrieve all sync messages from the converter and process them
         let sync_messages = self.converter.sync_messages();
         for message in sync_messages {
             self.process_message(message).await;
         }
-        dbg!("sync complete");
+        println!("{} sync complete", Utc::now());
         // Continue processing messages after the sync period
         while let Some(message) = self.input.next().await {
             self.process_message(message).await;
         }
-        dbg!("process complete");
+        println!("{} process complete", Utc::now());
         Ok(())
     }
 
