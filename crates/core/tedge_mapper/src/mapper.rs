@@ -45,7 +45,8 @@ pub(crate) fn mqtt_config(
         .with_port(port)
         .with_session_name(name)
         .with_subscriptions(topics)
-        .with_max_packet_size(10 * 1024 * 1024))
+        .with_max_packet_size(10 * 1024 * 1024)
+        .with_keep_alive(15))
 }
 
 pub struct Mapper {
