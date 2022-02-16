@@ -146,7 +146,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
         .expect_or("No message received before timeout");
     println!("{}", imsg);
     assert!(&imsg.contains("Temperature very high"));
-    // tokio::time::sleep(time::Duration::from_secs(5)).await;
+    tokio::time::sleep(time::Duration::from_secs(5)).await;
     dbg!("stopping mapper");
     c8y_mapper.abort();
     sub1.abort();
