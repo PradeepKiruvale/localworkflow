@@ -14,7 +14,7 @@ use crate::{
     c8y_converter::CumulocityConverter, mapper::create_mapper, size_threshold::SizeThreshold,
 };
 
-const ALARM_SYNC_TIMEOUT_MS: Duration = Duration::from_millis(5000);
+const ALARM_SYNC_TIMEOUT_MS: Duration = Duration::from_millis(15000);
 
 #[tokio::test]
 #[serial]
@@ -146,7 +146,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
         .expect_or("No message received before timeout");
     println!("{}", imsg);
     assert!(&imsg.contains("Temperature very high"));
-    tokio::time::sleep(time::Duration::from_secs(10)).await;
+    tokio::time::sleep(time::Duration::from_secs(5)).await;
     dbg!("stopping mapper");
     c8y_mapper.abort();
     sub1.abort();
