@@ -129,6 +129,7 @@ where
 pub struct TestCon {
     client: AsyncClient,
     eventloop: EventLoop,
+    id: String,
 }
 
 impl TestCon {
@@ -136,18 +137,21 @@ impl TestCon {
         let id: String = std::iter::repeat_with(fastrand::alphanumeric)
             .take(10)
             .collect();
-        let mut options = MqttOptions::new(id, "localhost", mqtt_port);
+        let mut options = MqttOptions::new(id.clone(), "localhost", mqtt_port);
         options.set_clean_session(true);
 
         let (client, eventloop) = AsyncClient::new(options, 10);
-        TestCon { client, eventloop }
+        TestCon { client, eventloop, id }
     }
 
     pub async fn subscribe(&mut self, topic: &str, qos: QoS) -> Result<(), anyhow::Error> {
         self.client.subscribe(topic, qos).await?;
 
         loop {
-            match self.eventloop.poll().await {
+            let res = self.eventloop.poll().await;
+            println!("client {} received",self.id);
+            dbg!(&res);
+            match res {
                 Ok(Event::Incoming(Packet::SubAck(_))) => {
                     return Ok(());
                 }
