@@ -173,7 +173,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     )
     //     .await
     //     .unwrap();
-    tokio::time::sleep(time::Duration::from_secs(70)).await;
+    tokio::time::sleep(time::Duration::from_secs(20)).await;
     dbg!("restart mapper");
     // Restart the C8Y Mapper
     let _sub1 = tokio::spawn(async move {

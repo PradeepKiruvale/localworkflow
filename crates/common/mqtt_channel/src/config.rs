@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::TopicFilter;
 
 /// Configuration of an MQTT connection
@@ -131,6 +133,7 @@ impl Config {
         let mut mqtt_options = rumqttc::MqttOptions::new(id, &self.host, self.port);
         mqtt_options.set_clean_session(self.clean_session);
         mqtt_options.set_max_packet_size(self.max_packet_size, self.max_packet_size);
+        mqtt_options.set_keep_alive(Duration::from_secs(15));
 
         mqtt_options
     }

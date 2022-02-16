@@ -139,6 +139,7 @@ impl TestCon {
             .collect();
         let mut options = MqttOptions::new(id.clone(), "localhost", mqtt_port);
         options.set_clean_session(true);
+        options.set_keep_alive(Duration::from_secs(20));
 
         let (client, eventloop) = AsyncClient::new(options, 10);
         TestCon { client, eventloop, id }
