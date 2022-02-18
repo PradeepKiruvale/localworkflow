@@ -262,6 +262,7 @@ impl C8YHttpProxy for JwtAuthHttpProxy {
     }
 
     async fn get_jwt_token(&mut self) -> Result<SmartRestJwtResponse, SMCumulocityMapperError> {
+        tokio::time::sleep(Duration::from_secs(3)).await;
         let () = self
             .mqtt_con
             .published
