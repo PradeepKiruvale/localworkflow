@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::TopicFilter;
 
 /// Configuration of an MQTT connection
@@ -40,6 +42,11 @@ pub struct Config {
     ///
     /// Default: `1024 * 1024`.
     pub max_packet_size: usize,
+
+    /// Maximum time the connection will be alive
+    ///
+    /// Default: 60 seconds
+    pub keep_alive: usize,
 }
 
 /// By default a client connects the local MQTT broker.
@@ -53,6 +60,7 @@ impl Default for Config {
             clean_session: false,
             queue_capacity: 1024,
             max_packet_size: 1024 * 1024,
+            keep_alive: 60,
         }
     }
 }
@@ -119,6 +127,10 @@ impl Config {
         }
     }
 
+    pub fn with_keep_alive(self, keep_alive: usize) -> Self {
+        Self { keep_alive, ..self }
+    }
+
     /// Wrap this config into an internal set of options for `rumqttc`.
     pub(crate) fn mqtt_options(&self) -> rumqttc::MqttOptions {
         let id = match &self.session_name {
@@ -131,6 +143,7 @@ impl Config {
         let mut mqtt_options = rumqttc::MqttOptions::new(id, &self.host, self.port);
         mqtt_options.set_clean_session(self.clean_session);
         mqtt_options.set_max_packet_size(self.max_packet_size, self.max_packet_size);
+        mqtt_options.set_keep_alive(Duration::from_secs(self.keep_alive as u64));
 
         mqtt_options
     }

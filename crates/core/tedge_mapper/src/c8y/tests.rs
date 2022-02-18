@@ -435,6 +435,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     )
     .await;
 
+    tokio::time::sleep(Duration::from_secs(5)).await;
     c8y_mapper.abort();
 
     //Publish a new alarm while the mapper is down
@@ -459,7 +460,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     )
     //     .await
     //     .unwrap();
-
+    tokio::time::sleep(Duration::from_secs(20)).await;
     // Restart the C8Y Mapper
     let _ = start_c8y_mapper(broker.port).await.unwrap();
 
@@ -798,7 +799,7 @@ async fn start_c8y_mapper(mqtt_port: u16) -> Result<JoinHandle<()>, anyhow::Erro
         http_proxy,
     ));
 
-    let mut mapper = create_mapper("c8y-mapper-test", mqtt_port, converter).await?;
+    let mut mapper = create_mapper("c8y-mapper-test", mqtt_port, 10, converter).await?;
 
     let mapper_task = tokio::spawn(async move {
         let _ = mapper.run().await;

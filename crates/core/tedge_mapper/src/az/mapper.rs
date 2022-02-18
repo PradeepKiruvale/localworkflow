@@ -29,7 +29,7 @@ impl TEdgeComponent for AzureMapper {
 
         let converter = Box::new(AzureConverter::new(add_timestamp, clock, size_threshold));
 
-        let mut mapper = create_mapper(AZURE_MAPPER_NAME, mqtt_port, converter).await?;
+        let mut mapper = create_mapper(AZURE_MAPPER_NAME, mqtt_port, 60, converter).await?;
 
         mapper
             .run()

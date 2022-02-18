@@ -81,7 +81,7 @@ impl TEdgeComponent for CumulocityMapper {
             http_proxy,
         ));
 
-        let mut mapper = create_mapper(CUMULOCITY_MAPPER_NAME, mqtt_port, converter).await?;
+        let mut mapper = create_mapper(CUMULOCITY_MAPPER_NAME, mqtt_port, 60, converter).await?;
 
         mapper
             .run()
