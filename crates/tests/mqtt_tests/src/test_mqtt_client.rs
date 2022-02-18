@@ -99,17 +99,10 @@ where
     F: Send + Sync + Fn((String, String)) -> Vec<(String, String)>,
 {
     let mut con = TestCon::new(mqtt_port);
-    //for _ in 0..4 {
-        match con.subscribe("c8y/s/uat", QoS::AtLeastOnce).await {
-            Ok(_) => {
-                dbg!(".......Ok..............");
-               // break;
-            }
-            Err(e) => {
-                dbg!(e);
-            }
-        }
-    //}
+    con.subscribe("c8y/s/uat", QoS::AtLeastOnce)
+        .await
+        .expect("Fail to subscribe on #");
+
 
     // con.subscribe("c8y/s/uat", QoS::AtLeastOnce)
     //     .await
