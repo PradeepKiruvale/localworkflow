@@ -371,25 +371,25 @@ async fn get_jwt_token_full_run() {
     // Given a background process that publish JWT tokens on demand.
     let broker = mqtt_tests::test_mqtt_broker();
 
-    let _sub1 = tokio::spawn(async move {
-        let topics = vec!["c8y/s/uat", "c8y/s/dat"];
-        let mqtt_config = mqtt_channel::Config::default()
-            .with_port(55555)
-            .with_session_name("jwt_server")
-            .with_subscriptions(topics.try_into().unwrap());
+    // let _sub1 = tokio::spawn(async move {
+    //     let topics = vec!["c8y/s/uat", "c8y/s/dat"];
+    //     let mqtt_config = mqtt_channel::Config::default()
+    //         .with_port(55555)
+    //         .with_session_name("jwt_server")
+    //         .with_subscriptions(topics.try_into().unwrap());
 
-        let mut con = Connection::new(&mqtt_config).await.unwrap();
-        loop {
-            match con.received.next().await {
-                Some(mesg) => {
-                    println!("sub-1: {:?}", mesg);
-                }
-                _ => {
-                    break;
-                }
-            }
-        }
-    });
+    //     let mut con = Connection::new(&mqtt_config).await.unwrap();
+    //     loop {
+    //         match con.received.next().await {
+    //             Some(mesg) => {
+    //                 println!("sub-1: {:?}", mesg);
+    //             }
+    //             _ => {
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // });
     // wait for broker to start
     // sleep(Duration::from_millis(500)).await;
     broker.map_messages_background(|(topic, _)| {
@@ -412,15 +412,22 @@ async fn get_jwt_token_full_run() {
 
     // ... fetches and returns these JWT tokens.
 
-    match http_proxy.get_jwt_token().await {
-        Ok(response) => {
-            assert_eq!(response.token(), "1111");
-            return;
-        }
-        Err(e) => {}
-    };
+    // match http_proxy.get_jwt_token().await {
+    //     Ok(response) => {
+    //         assert_eq!(response.token(), "1111");
+    //         return;
+    //     }
+    //     Err(e) => {}
+    // };
 
-    assert!(false);
+    // assert!(false);
+
+    // ... fetches and returns these JWT tokens.
+    let jwt_token = http_proxy.get_jwt_token().await;
+
+    // `get_jwt_token` should return `Ok` and the value of token should be as set above `1111`.
+    assert!(jwt_token.is_ok());
+    assert_eq!(jwt_token.unwrap().token(), "1111");
     //dbg!(&jwt_token);
     // `get_jwt_token` should return `Ok` and the value of token should be as set above `1111`.
 
