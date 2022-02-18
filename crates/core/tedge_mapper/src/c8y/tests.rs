@@ -1,4 +1,7 @@
-use crate::core::{converter::Converter, mapper::create_mapper, size_threshold::SizeThreshold};
+use crate::{
+    core::{converter::Converter, mapper::create_mapper, size_threshold::SizeThreshold},
+    MapperOpt,
+};
 use c8y_api::{
     http_proxy::{C8YHttpProxy, JwtAuthHttpProxy},
     json_c8y::C8yUpdateSoftwareListResponse,
@@ -7,14 +10,17 @@ use c8y_smartrest::{
     error::SMCumulocityMapperError, operations::Operations,
     smartrest_deserializer::SmartRestJwtResponse,
 };
-use mqtt_channel::{Connection, Message, Topic, TopicFilter, StreamExt, PubChannel};
+use mqtt_channel::{Config, Connection, Message, PubChannel, StreamExt, Topic, TopicFilter};
 use mqtt_tests::test_mqtt_server::MqttProcessHandler;
 use serial_test::serial;
 use std::time::Duration;
 use test_case::test_case;
 use tokio::task::JoinHandle;
 
-use super::converter::{get_child_id_from_topic, CumulocityConverter};
+use super::{
+    converter::{get_child_id_from_topic, CumulocityConverter},
+    mapper::CumulocityMapper,
+};
 
 const TEST_TIMEOUT_MS: Duration = Duration::from_millis(5000);
 
@@ -339,6 +345,7 @@ async fn get_jwt_token_full_run() {
     // Given a background process that publish JWT tokens on demand.
     let broker = mqtt_tests::test_mqtt_broker();
     tokio::spawn(fake_jwt_token_publisher(broker.port));
+
     // An JwtAuthHttpProxy ...
     let mqtt_config = mqtt_channel::Config::default()
         .with_port(broker.port)
@@ -428,7 +435,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     )
     .await;
 
-    tokio::time::sleep(Duration::from_secs(5)).await;
+    tokio::time::sleep(Duration::from_secs(1)).await;
     c8y_mapper.abort();
 
     //Publish a new alarm while the mapper is down
@@ -453,7 +460,9 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     )
     //     .await
     //     .unwrap();
-    tokio::time::sleep(Duration::from_secs(20)).await;
+    //let mut mapper = CumulocityMapper::new();
+    clear_session().await;
+    // tokio::time::sleep(Duration::from_secs(20)).await;
     // Restart the C8Y Mapper
     let _ = start_c8y_mapper(broker.port).await.unwrap();
 
@@ -476,6 +485,22 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     .await;
 
     c8y_mapper.abort();
+}
+
+pub async fn clear_session() -> Result<(), anyhow::Error> {
+    dbg!("Clear tedge sm mapper session");
+    let operations = Operations::try_new("/etc/tedge/operations", "c8y")?;
+    let topics = vec![
+        "tedge/commands/res/software/update",
+        "tedge/commands/res/software/list",
+        "tedge/commands/res/control/restart",
+    ];
+    let config = Config::default()
+        .with_session_name("c8y-mapper-test")
+        .with_clean_session(true)
+        .with_subscriptions(topics.try_into().unwrap());
+    mqtt_channel::clear_session(&config).await?;
+    Ok(())
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -810,8 +835,7 @@ async fn publish_a_fake_jwt_token(broker: &MqttProcessHandler) {
     let _ = broker.publish("c8y/s/dat", "71,1111").await.unwrap();
 }
 
-async fn fake_jwt_token_publisher(mqtt_port: u16)
-{
+async fn fake_jwt_token_publisher(mqtt_port: u16) {
     let mqtt_config = mqtt_channel::Config::default()
         .with_port(mqtt_port)
         .with_session_name("Fake-JWT-Token-Publisher")
@@ -819,7 +843,11 @@ async fn fake_jwt_token_publisher(mqtt_port: u16)
     let mut mqtt_client = Connection::new(&mqtt_config).await.unwrap();
     let s_dat = Topic::new_unchecked("c8y/s/dat");
     while let Some(_request) = mqtt_client.received.next().await {
-        if let Err(err) = mqtt_client.published.publish(Message::new(&s_dat, "71,1111")).await {
+        if let Err(err) = mqtt_client
+            .published
+            .publish(Message::new(&s_dat, "71,1111"))
+            .await
+        {
             dbg!(err);
             break;
         }
