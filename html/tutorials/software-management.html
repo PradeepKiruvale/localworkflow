@@ -157,11 +157,10 @@ Refer to <a href="./write-my-software-management-plugin.html">this</a> document 
 <p>Three components are required on your devices to enable software management:</p>
 <ol>
 <li>
-<p>Software management mapper for Cumulocity cloud
-Sm-mapper acts  as a proxy between the cloud and the device.
+<p>Software management mapper for Cumulocity cloud acts as a proxy between the cloud and the device.
 This translates the cloud specific message type into device specific type and vice-versa.(Example: Cumulocity smart-rest to/from thin-edge json)
 The messages from cloud will be translated and forwarded to the <code>tedge_agent</code> and messages from <code>tedge_agent</code> will be translated and sent to cumulocity cloud.
-You can find this process with the name <code>tedge_mapper sm-c8y</code> in <code>ps</code> once it starts.</p>
+You can find this process with the name <code>tedge_mapper c8y</code> in <code>ps</code> once it starts.</p>
 </li>
 <li>
 <p>Software management agent
@@ -257,7 +256,7 @@ In Cumulocity, one can then simply provide the package to update without having 
 <h3 id="configuring-the-default-plugin"><a class="header" href="#configuring-the-default-plugin">Configuring the default plugin</a></h3>
 <p>Default plugin can be configured using the thin-edge cli command <code>tedge</code>.</p>
 <p>For example set <code>apt</code> plugin as a <code>default plugin</code></p>
-<pre><code>$ sudo tedge config set software.plugin.default apt
+<pre><code class="language-shell">sudo tedge config set software.plugin.default apt
 </code></pre>
 
                     </main>
