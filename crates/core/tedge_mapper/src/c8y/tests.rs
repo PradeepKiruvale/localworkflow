@@ -7,7 +7,7 @@ use c8y_smartrest::{
     error::SMCumulocityMapperError, operations::Operations,
     smartrest_deserializer::SmartRestJwtResponse,
 };
-use mqtt_channel::{Connection, Message, Topic, TopicFilter};
+use mqtt_channel::{Connection, Message, Topic, TopicFilter, StreamExt, PubChannel};
 use mqtt_tests::test_mqtt_server::MqttProcessHandler;
 use serial_test::serial;
 use std::time::Duration;
@@ -338,14 +338,7 @@ async fn mapper_publishes_software_update_request_with_wrong_action() {
 async fn get_jwt_token_full_run() {
     // Given a background process that publish JWT tokens on demand.
     let broker = mqtt_tests::test_mqtt_broker();
-    broker.map_messages_background(|(topic, _)| {
-        let mut response = vec![];
-        if &topic == "c8y/s/uat" {
-            response.push(("c8y/s/dat".into(), "71,1111".into()));
-        }
-        response
-    });
-
+    tokio::spawn(fake_jwt_token_publisher(broker.port));
     // An JwtAuthHttpProxy ...
     let mqtt_config = mqtt_channel::Config::default()
         .with_port(broker.port)
@@ -815,4 +808,20 @@ fn remove_whitespace(s: &str) -> String {
 
 async fn publish_a_fake_jwt_token(broker: &MqttProcessHandler) {
     let _ = broker.publish("c8y/s/dat", "71,1111").await.unwrap();
+}
+
+async fn fake_jwt_token_publisher(mqtt_port: u16)
+{
+    let mqtt_config = mqtt_channel::Config::default()
+        .with_port(mqtt_port)
+        .with_session_name("Fake-JWT-Token-Publisher")
+        .with_subscriptions(TopicFilter::new_unchecked("c8y/s/uat"));
+    let mut mqtt_client = Connection::new(&mqtt_config).await.unwrap();
+    let s_dat = Topic::new_unchecked("c8y/s/dat");
+    while let Some(_request) = mqtt_client.received.next().await {
+        if let Err(err) = mqtt_client.published.publish(Message::new(&s_dat, "71,1111")).await {
+            dbg!(err);
+            break;
+        }
+    }
 }
