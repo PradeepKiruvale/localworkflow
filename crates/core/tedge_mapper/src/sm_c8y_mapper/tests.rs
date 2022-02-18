@@ -372,10 +372,10 @@ async fn get_jwt_token_full_run() {
     let broker = mqtt_tests::test_mqtt_broker();
 
     let _sub1 = tokio::spawn(async move {
-        let topics = vec!["#"];
+        let topics = vec!["c8y/s/uat", "c8y/s/dat"];
         let mqtt_config = mqtt_channel::Config::default()
             .with_port(55555)
-            .with_session_name("test-receiver-1")
+            .with_session_name("jwt_server")
             .with_subscriptions(topics.try_into().unwrap());
 
         let mut con = Connection::new(&mqtt_config).await.unwrap();
