@@ -435,7 +435,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     )
     .await;
 
-    tokio::time::sleep(Duration::from_millis(300)).await;
+    //tokio::time::sleep(Duration::from_millis(300)).await;
     c8y_mapper.abort();
 
     //Publish a new alarm while the mapper is down
