@@ -415,7 +415,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     let mut messages = broker.messages_published_on("c8y/s/us").await;
 
     // Start the C8Y Mapper
-    let c8y_mapper = start_c8y_mapper(broker.port, 2).await.unwrap();
+    let c8y_mapper = start_c8y_mapper(broker.port, 5).await.unwrap();
 
     let _ = broker
         .publish_with_opts(
@@ -435,7 +435,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     )
     .await;
 
-    tokio::time::sleep(Duration::from_millis(200)).await;
+    tokio::time::sleep(Duration::from_millis(300)).await;
     c8y_mapper.abort();
 
     //Publish a new alarm while the mapper is down
@@ -462,7 +462,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     .unwrap();
     //let mut mapper = CumulocityMapper::new();
     // let _ = clear_session().await.unwrap();
-    tokio::time::sleep(Duration::from_secs(3)).await;
+    tokio::time::sleep(Duration::from_secs(6)).await;
     // Restart the C8Y Mapper
     let _ = start_c8y_mapper(broker.port, 60).await.unwrap();
 
