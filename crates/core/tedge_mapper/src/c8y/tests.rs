@@ -489,16 +489,10 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
 
 pub async fn clear_session() -> Result<(), anyhow::Error> {
     dbg!("Clear tedge sm mapper session");
-    let operations = Operations::try_new("/etc/tedge/operations", "c8y")?;
-    let topics = vec![
-        "tedge/commands/res/software/update",
-        "tedge/commands/res/software/list",
-        "tedge/commands/res/control/restart",
-    ];
+   
     let config = Config::default()
         .with_session_name("c8y-mapper-test")
-        .with_clean_session(true)
-        .with_subscriptions(topics.try_into().unwrap());
+        .with_clean_session(true);
     mqtt_channel::clear_session(&config).await?;
     Ok(())
 }
