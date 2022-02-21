@@ -35,7 +35,7 @@ async fn mapper_publishes_a_software_list_request() {
         .await;
 
     // Start the SM Mapper
-    let sm_mapper = start_c8y_mapper(broker.port).await;
+    let sm_mapper = start_c8y_mapper(broker.port, 60).await;
 
     // Expect on `tedge/commands/req/software/list` a software list request.
     mqtt_tests::assert_received_all_expected(&mut messages, TEST_TIMEOUT_MS, &[r#"{"id":"#]).await;
@@ -51,7 +51,7 @@ async fn mapper_publishes_a_supported_operation_and_a_pending_operations_onto_c8
     let mut messages = broker.messages_published_on("c8y/s/us").await;
 
     // Start SM Mapper
-    let sm_mapper = start_c8y_mapper(broker.port).await;
+    let sm_mapper = start_c8y_mapper(broker.port, 60).await;
 
     // Expect both 118 and 500 messages has been received on `c8y/s/us`, if no msg received for the timeout the test fails.
     mqtt_tests::assert_received_all_expected(
@@ -74,7 +74,7 @@ async fn mapper_publishes_software_update_request() {
         .messages_published_on("tedge/commands/req/software/update")
         .await;
 
-    let sm_mapper = start_c8y_mapper(broker.port).await;
+    let sm_mapper = start_c8y_mapper(broker.port, 60).await;
 
     // Prepare and publish a software update smartrest request on `c8y/s/ds`.
     let smartrest = r#"528,external_id,nodered,1.0.0::debian,,install"#;
@@ -115,7 +115,7 @@ async fn mapper_publishes_software_update_status_onto_c8y_topic() {
     let mut messages = broker.messages_published_on("c8y/s/us").await;
 
     // Start SM Mapper
-    let sm_mapper = start_c8y_mapper(broker.port).await;
+    let sm_mapper = start_c8y_mapper(broker.port, 60).await;
     let _ = publish_a_fake_jwt_token(broker).await;
 
     // Prepare and publish a software update status response message `executing` on `tedge/commands/res/software/update`.
@@ -170,7 +170,7 @@ async fn mapper_publishes_software_update_failed_status_onto_c8y_topic() {
     let mut messages = broker.messages_published_on("c8y/s/us").await;
 
     // Start SM Mapper
-    let sm_mapper = start_c8y_mapper(broker.port).await;
+    let sm_mapper = start_c8y_mapper(broker.port, 60).await;
     let _ = publish_a_fake_jwt_token(broker).await;
 
     // The agent publish an error
@@ -233,7 +233,7 @@ async fn mapper_fails_during_sw_update_recovers_and_process_response() -> Result
     let mut responses = broker.messages_published_on("c8y/s/us").await;
 
     // Start SM Mapper
-    let sm_mapper = start_c8y_mapper(broker.port).await?;
+    let sm_mapper = start_c8y_mapper(broker.port, 60).await?;
 
     // Prepare and publish a software update smartrest request on `c8y/s/ds`.
     let smartrest = r#"528,external_id,nodered,1.0.0::debian,,install"#;
@@ -289,7 +289,7 @@ async fn mapper_fails_during_sw_update_recovers_and_process_response() -> Result
         .unwrap();
 
     // Restart SM Mapper
-    let sm_mapper = start_c8y_mapper(broker.port).await?;
+    let sm_mapper = start_c8y_mapper(broker.port, 60).await?;
 
     // Validate that the mapper process the response and forward it on 'c8y/s/us'
     // Expect init messages followed by a 503 (success)
@@ -322,7 +322,7 @@ async fn mapper_publishes_software_update_request_with_wrong_action() {
     // Create a subscriber to receive messages on `c8y/s/us` topic.
     let mut messages = broker.messages_published_on("c8y/s/us").await;
 
-    let _sm_mapper = start_c8y_mapper(broker.port).await;
+    let _sm_mapper = start_c8y_mapper(broker.port, 60).await;
 
     // Prepare and publish a c8y_SoftwareUpdate smartrest request on `c8y/s/ds` that contains a wrong action `remove`, that is not known by c8y.
     let smartrest = r#"528,external_id,nodered,1.0.0::debian,,remove"#;
@@ -373,7 +373,7 @@ async fn c8y_mapper_alarm_mapping_to_smartrest() {
     let mut messages = broker.messages_published_on("c8y/s/us").await;
 
     // Start the C8Y Mapper
-    let c8y_mapper = start_c8y_mapper(broker.port).await.unwrap();
+    let c8y_mapper = start_c8y_mapper(broker.port, 60).await.unwrap();
 
     let _ = broker
         .publish_with_opts(
@@ -415,7 +415,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     let mut messages = broker.messages_published_on("c8y/s/us").await;
 
     // Start the C8Y Mapper
-    let c8y_mapper = start_c8y_mapper(broker.port).await.unwrap();
+    let c8y_mapper = start_c8y_mapper(broker.port, 2).await.unwrap();
 
     let _ = broker
         .publish_with_opts(
@@ -462,9 +462,9 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     .unwrap();
     //let mut mapper = CumulocityMapper::new();
     // let _ = clear_session().await.unwrap();
-    tokio::time::sleep(Duration::from_secs(7)).await;
+    tokio::time::sleep(Duration::from_secs(3)).await;
     // Restart the C8Y Mapper
-    let _ = start_c8y_mapper(broker.port).await.unwrap();
+    let _ = start_c8y_mapper(broker.port, 60).await.unwrap();
 
     // Ignored until the rumqttd broker bug that doesn't handle empty retained messages
     // Expect the previously missed clear temperature alarm message
@@ -796,7 +796,7 @@ impl C8YHttpProxy for FakeC8YHttpProxy {
     }
 }
 
-async fn start_c8y_mapper(mqtt_port: u16) -> Result<JoinHandle<()>, anyhow::Error> {
+async fn start_c8y_mapper(mqtt_port: u16, keep_alive: usize) -> Result<JoinHandle<()>, anyhow::Error> {
     let device_name = "test-device".into();
     let device_type = "test-device-type".into();
     let size_threshold = SizeThreshold(16 * 1024);
@@ -811,7 +811,7 @@ async fn start_c8y_mapper(mqtt_port: u16) -> Result<JoinHandle<()>, anyhow::Erro
         http_proxy,
     ));
 
-    let mut mapper = create_mapper("c8y-mapper-test", mqtt_port, 5, converter).await?;
+    let mut mapper = create_mapper("c8y-mapper-test", mqtt_port, keep_alive, converter).await?;
 
     let mapper_task = tokio::spawn(async move {
         let _ = mapper.run().await;
