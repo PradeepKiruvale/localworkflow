@@ -461,7 +461,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     .await
     //     .unwrap();
     //let mut mapper = CumulocityMapper::new();
-    clear_session().await;
+    let _ = clear_session().await.unwrap();
     // tokio::time::sleep(Duration::from_secs(20)).await;
     // Restart the C8Y Mapper
     let _ = start_c8y_mapper(broker.port).await.unwrap();
@@ -489,7 +489,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
 
 pub async fn clear_session() -> Result<(), anyhow::Error> {
     dbg!("Clear tedge sm mapper session");
-   
+
     let config = Config::default()
         .with_session_name("c8y-mapper-test")
         .with_clean_session(true);
