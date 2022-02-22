@@ -415,7 +415,30 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     let mut messages = broker.messages_published_on("c8y/s/us").await;
 
     // Start the C8Y Mapper
-    let c8y_mapper = start_c8y_mapper(broker.port, 5).await.unwrap();
+    let c8y_mapper = start_c8y_mapper(broker.port, 60).await.unwrap();
+
+    let _sub1 = tokio::spawn(async move {
+        let topics = vec!["c8y-internal/alarms/critical/temperature_alarm"];
+        let mqtt_config = mqtt_channel::Config::default()
+            .with_port(55555)
+            .with_session_name("test-receiver-1")
+            .with_subscriptions(topics.try_into().unwrap());
+        let mut con = Connection::new(&mqtt_config).await.unwrap();
+        loop {
+            match con.received.next().await {
+                Some(mesg) => {
+                    if mesg.topic.name == "c8y-internal/alarms/critical/temperature_alarm" {
+                        println!("sub-1: {:?}", mesg);
+                        c8y_mapper.abort();
+                        break;
+                    }
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+    });
 
     let _ = broker
         .publish_with_opts(
@@ -435,8 +458,8 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     )
     .await;
 
-    tokio::time::sleep(Duration::from_millis(300)).await;
-    c8y_mapper.abort();
+    // wait for messages to get synced properly before aborting mapper
+    //tokio::time::sleep(Duration::from_millis(300)).await;
 
     //Publish a new alarm while the mapper is down
     let _ = broker
@@ -460,11 +483,13 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     //     )
     //     .await
     //     .unwrap();
-    //let mut mapper = CumulocityMapper::new();
-    //let _ = clear_session().await.unwrap();
-    tokio::time::sleep(Duration::from_secs(6)).await;
+
+    // wait for the keep-alive time to get elapsed and the mapper's session to get closed properly by the server(broker),
+    // so that its next connection on restart is treated as a new client connection, rather than a reconnection.
+    // tokio::time::sleep(Duration::from_secs(6)).await;
+
     // Restart the C8Y Mapper
-    let _ = start_c8y_mapper(broker.port, 60).await.unwrap();
+    let c8y_mapper_re = start_c8y_mapper(broker.port, 60).await.unwrap();
 
     // Ignored until the rumqttd broker bug that doesn't handle empty retained messages
     // Expect the previously missed clear temperature alarm message
@@ -484,7 +509,7 @@ async fn c8y_mapper_syncs_pending_alarms_on_startup() {
     )
     .await;
 
-    c8y_mapper.abort();
+    c8y_mapper_re.abort();
 }
 
 pub async fn clear_session() -> Result<(), anyhow::Error> {
