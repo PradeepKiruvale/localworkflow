@@ -17,8 +17,9 @@ use mqtt_channel::{Connection, Message, PubChannel, StreamExt, SubChannel, Topic
 use plugin_sm::plugin_manager::{ExternalPlugins, Plugins};
 use std::{convert::TryInto, fmt::Debug, path::PathBuf, sync::Arc};
 use tedge_config::{
-    ConfigRepository, ConfigSettingAccessor, ConfigSettingAccessorStringExt, MqttPortSetting,
-    SoftwarePluginDefaultSetting, TEdgeConfigLocation, TmpPathDefaultSetting,
+    ConfigRepository, ConfigSettingAccessor, ConfigSettingAccessorStringExt,
+    MqttBindAddressSetting, MqttPortSetting, SoftwarePluginDefaultSetting, TEdgeConfigLocation,
+    TmpPathDefaultSetting,
 };
 use tokio::sync::Mutex;
 use tracing::{debug, error, info, instrument};
@@ -78,7 +79,7 @@ impl Default for SmAgentConfig {
 
         let log_dir = PathBuf::from("/var/log/tedge/agent");
 
-        let config_location = TEdgeConfigLocation::from_default_system_location();
+        let config_location = TEdgeConfigLocation::default();
 
         let download_dir = PathBuf::from("/tmp");
 
@@ -107,6 +108,7 @@ impl SmAgentConfig {
         let tedge_config = config_repository.load()?;
 
         let mqtt_config = mqtt_channel::Config::default()
+            .with_host(tedge_config.query(MqttBindAddressSetting)?.to_string())
             .with_port(tedge_config.query(MqttPortSetting)?.into())
             .with_max_packet_size(10 * 1024 * 1024);
 
@@ -567,8 +569,7 @@ mod tests {
     #[tokio::test]
     async fn check_agent_restart_file_is_created() -> Result<(), AgentError> {
         assert_eq!(INIT_COMMAND, "echo");
-        let tedge_config_location =
-            tedge_config::TEdgeConfigLocation::from_default_system_location();
+        let tedge_config_location = tedge_config::TEdgeConfigLocation::default();
         let agent = SmAgent::try_new(
             "tedge_agent_test",
             SmAgentConfig::try_new(tedge_config_location).unwrap(),
