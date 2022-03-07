@@ -17,20 +17,20 @@ class AptPluginFailNoArg(AptPlugin):
         super().setup()
 
     def execute(self):
-        self.plugin_cmd("install", "outp_install", 1)
-        self.plugin_cmd("remove", "outp_install", 1)
-        self.plugin_cmd("prepare", "outp_install", 1, "nonsense")
-        self.plugin_cmd("list", "outp_install", 1, "nonsense")
-        self.plugin_cmd("finalize", "outp_install", 1, "nonsense")
+        self.plugin_cmd("install", "outp_install", 2)
+        self.plugin_cmd("remove", "outp_install", 2)
+        self.plugin_cmd("prepare", "outp_install", 2, "nonsense")
+        self.plugin_cmd("list", "outp_install", 2, "nonsense")
+        self.plugin_cmd("finalize", "outp_install", 2, "nonsense")
 
         self.plugin_cmd(
-            "install", "outp_install", 1, "rolldice", "nonsense", "nonsense"
+            "install", "outp_install", 2, "rolldice", "nonsense", "nonsense"
         )
-        self.plugin_cmd("remove", "outp_install", 1, "rolldice", "nonsense", "nonsense")
+        self.plugin_cmd("remove", "outp_install", 2, "rolldice", "nonsense", "nonsense")
 
-        self.plugin_cmd("prepare", "outp_install", 1, "nonsense", "nonsense")
-        self.plugin_cmd("list", "outp_install", 1, "nonsense", "nonsense")
-        self.plugin_cmd("finalize", "outp_install", 1, "nonsense", "nonsense")
+        self.plugin_cmd("prepare", "outp_install", 2, "nonsense", "nonsense")
+        self.plugin_cmd("list", "outp_install", 2, "nonsense", "nonsense")
+        self.plugin_cmd("finalize", "outp_install", 2, "nonsense", "nonsense")
 
         # self.skipTest('MyFeature is not supported on Windows')
         #logging.info('')

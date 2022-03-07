@@ -14,4 +14,4 @@ class AptPluginWrongOption(AptPlugin):
         super().setup()
 
     def execute(self):
-        self.plugin_cmd("nonsense", "outp", 1)
+        self.plugin_cmd("nonsense", "outp", 2)

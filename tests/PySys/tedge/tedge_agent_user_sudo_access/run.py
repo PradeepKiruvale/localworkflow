@@ -32,7 +32,7 @@ class TedgeAgentUserSudoAccess(BaseTest):
             command=self.sudo,
             arguments=["-u", "tedge-agent", self.sudo, "/etc/tedge/sm-plugins/apt"],
             stdouterr="apt",
-            expectedExitStatus="==1",
+            expectedExitStatus="==2",
         )
         self.assertThat("value" + proc1.expectedExitStatus, value=proc1.exitStatus)
 
@@ -40,7 +40,7 @@ class TedgeAgentUserSudoAccess(BaseTest):
             command=self.sudo,
             arguments=["-u", "tedge-agent", self.sudo, "/etc/tedge/sm-plugins/deb"],
             stdouterr="deb",
-            expectedExitStatus="==1",
+            expectedExitStatus="==2",
         )
         self.assertThat("value" + proc2.expectedExitStatus, value=proc2.exitStatus)
 
