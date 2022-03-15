@@ -46,4 +46,4 @@ jobs:
         # https://github.com/marketplace/actions/rust-cargo
         with:
           command: test
-          args: cargo test -- create_directory create_file -- --nocapture
+          args: -- create_directory create_file -- --nocapture
