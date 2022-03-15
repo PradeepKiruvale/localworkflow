@@ -87,9 +87,9 @@ mod tests {
         let ruser = whoami::realname();
         dbg!(&user);
         dbg!(&ruser);
-        let _ = create_file_with_user_group(&user, vec!["/tmp/fcreate_test"]).unwrap();
-        assert!(Path::new("/tmp/fcreate_test").exists());
-        let meta = std::fs::metadata("/tmp/fcreate_test").unwrap();
+        let _ = create_file_with_user_group(&user, vec!["/home/runner/fcreate_test"]).unwrap();
+        assert!(Path::new("/home/runner/fcreate_test").exists());
+        let meta = std::fs::metadata("/home/runner/fcreate_test").unwrap();
         let perm = meta.permissions();
         println!("{:o}", perm.mode());
         assert!(format!("{:o}", perm.mode()).contains("644"));
