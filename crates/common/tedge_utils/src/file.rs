@@ -20,7 +20,7 @@ pub fn create_directory_with_user_group(
                 } else {
                     dbg!(
                         "failed to create the directory {} due to error {}",
-                        directory, e
+                        directory, &e
                     );
                     return Err(e.into());
                 }
@@ -40,7 +40,7 @@ pub fn create_file_with_user_group(grp_user: &str, files: Vec<&str>) -> Result<(
                 if e.kind() == io::ErrorKind::AlreadyExists {
                     return Ok(());
                 } else {
-                    dbg!("failed to create the file {} due to error {}", file, e);
+                    dbg!("failed to create the file {} due to error {}", file, &e);
                     return Err(e.into());
                 }
             }
@@ -84,7 +84,9 @@ mod tests {
     #[test]
     fn create_file() {
         let user = whoami::username();
+        let ruser = whoami::realname();
         dbg!(&user);
+        dbg!(&ruser);
         let _ = create_file_with_user_group(&user, vec!["/tmp/fcreate_test"]).unwrap();
         assert!(Path::new("/tmp/fcreate_test").exists());
         let meta = std::fs::metadata("/tmp/fcreate_test").unwrap();
