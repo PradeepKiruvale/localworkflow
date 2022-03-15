@@ -89,8 +89,7 @@ mod tests {
         let meta = std::fs::metadata("/tmp/fcreate_test").unwrap();
         let perm = meta.permissions();
         println!("{:o}", perm.mode());
-        assert!(format!("{:o}", perm.mode()).contains("644"));
-        //assert_eq!(perm.mode(), 0o644);
+        assert!(format!("{:o}", perm.mode()).contains("644"));      
     }
 
     #[test]
@@ -102,6 +101,5 @@ mod tests {
         let perm = meta.permissions();
         println!("{:o}", perm.mode());
         assert!(format!("{:o}", perm.mode()).contains("775"));
-        //assert_eq!("40775".to_string(), format!("{:o}", perm.mode()));
     }
 }
