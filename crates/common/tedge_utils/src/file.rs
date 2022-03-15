@@ -1,5 +1,6 @@
 use nix::unistd::*;
 use std::fs::File;
+use std::os::linux::fs::MetadataExt;
 use std::os::unix::fs::PermissionsExt;
 use std::{fs, io};
 use users::{get_group_by_name, get_user_by_name};
@@ -20,7 +21,8 @@ pub fn create_directory_with_user_group(
                 } else {
                     dbg!(
                         "failed to create the directory {} due to error {}",
-                        directory, &e
+                        directory,
+                        &e
                     );
                     return Err(e.into());
                 }
@@ -66,12 +68,27 @@ fn change_owner_and_permission(file: &str, grp_user: &str, mode: u32) -> anyhow:
             anyhow::bail!("group not found");
         }
     };
-    dbg!(&ud, &gd);
-    chown(
-        file,
-        Some(Uid::from_raw(ud.into())),
-        Some(Gid::from_raw(gd.into())),
-    )?;
+    let _metadata = fs::metadata(file)?;
+    dbg!(_metadata);
+    let user = whoami::username();
+    if user.ne(grp_user) {
+        match chown(
+            file,
+            Some(Uid::from_raw(ud.into())),
+            Some(Gid::from_raw(gd.into())),
+        ) {
+            Ok(()) => {}
+            Err(e) => {
+                dbg!(
+                    "failed to set permission for {} file with user{} with error {}",
+                    file,
+                    grp_user,
+                    e
+                );
+                //Err(e.into())
+            }
+        }
+    }
     dbg!("after chown");
     let mut perm = fs::metadata(file)?.permissions();
     dbg!(&perm);
@@ -88,14 +105,14 @@ mod tests {
     use std::os::unix::fs::PermissionsExt;
     use std::path::Path;
     #[test]
-    fn create_file()->anyhow::Result<()> {
+    fn create_file() -> anyhow::Result<()> {
         let user = whoami::username();
         let ruser = whoami::realname();
         dbg!(&user);
         dbg!(&ruser);
-        let _ = create_file_with_user_group(&user, vec!["/home/runner/fcreate_test"])?;
-        assert!(Path::new("/home/runner/fcreate_test").exists());
-        let meta = std::fs::metadata("/home/runner/fcreate_test")?;
+        let _ = create_file_with_user_group(&user, vec!["/tmp/fcreate_test"])?;
+        assert!(Path::new("/tmp/fcreate_test").exists());
+        let meta = std::fs::metadata("/tmp/fcreate_test")?;
         let perm = meta.permissions();
         println!("{:o}", perm.mode());
         assert!(format!("{:o}", perm.mode()).contains("644"));
@@ -103,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    fn create_directory()->anyhow::Result<()>  {
+    fn create_directory() -> anyhow::Result<()> {
         let user = whoami::username();
         dbg!(&user);
         let _ = create_directory_with_user_group(&user, vec!["/tmp/fcreate_test_dir"])?;
