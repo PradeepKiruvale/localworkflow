@@ -3,6 +3,7 @@ use std::fs::File;
 use std::os::linux::fs::MetadataExt;
 use std::os::unix::fs::PermissionsExt;
 use std::{fs, io};
+
 use users::{get_group_by_name, get_user_by_name};
 
 pub fn create_directory_with_user_group(
@@ -68,10 +69,10 @@ fn change_owner_and_permission(file: &str, grp_user: &str, mode: u32) -> anyhow:
             anyhow::bail!("group not found");
         }
     };
-    let _metadata = fs::metadata(file)?;
-    dbg!(_metadata);
-    let user = whoami::username();
-    if user.ne(grp_user) {
+    let uid = fs::metadata(file)?.st_uid();
+    let gid = fs::metadata(file)?.st_gid();
+
+    if (ud != uid) && (gd != gid) {
         match chown(
             file,
             Some(Uid::from_raw(ud.into())),
