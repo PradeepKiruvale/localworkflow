@@ -66,13 +66,13 @@ fn change_owner_and_permission(file: &str, grp_user: &str, mode: u32) -> anyhow:
             anyhow::bail!("group not found");
         }
     };
-
+    dbg!(&ud, &gd);
     chown(
         file,
         Some(Uid::from_raw(ud.into())),
         Some(Gid::from_raw(gd.into())),
     )?;
-
+    dbg!("after chown");
     let mut perm = fs::metadata(file)?.permissions();
     dbg!(&perm);
     perm.set_mode(mode);
