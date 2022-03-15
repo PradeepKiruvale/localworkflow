@@ -46,4 +46,4 @@ jobs:
         # https://github.com/marketplace/actions/rust-cargo
         with:
           command: test
-          args:  -- --nocapture
+          args: -p tedge_utils --lib -- --nocapture
