@@ -54,6 +54,7 @@ fn change_owner_and_permission(file: &str, grp_user: &str, mode: u32) -> anyhow:
     let ud = match get_user_by_name(grp_user) {
         Some(user) => user.uid(),
         None => {
+            dbg!("user not found");
             anyhow::bail!("user not found");
         }
     };
@@ -61,6 +62,7 @@ fn change_owner_and_permission(file: &str, grp_user: &str, mode: u32) -> anyhow:
     let gd = match get_group_by_name(grp_user) {
         Some(group) => group.gid(),
         None => {
+            dbg!("grp not found");
             anyhow::bail!("group not found");
         }
     };
@@ -72,8 +74,11 @@ fn change_owner_and_permission(file: &str, grp_user: &str, mode: u32) -> anyhow:
     )?;
 
     let mut perm = fs::metadata(file)?.permissions();
+    dbg!(&perm);
     perm.set_mode(mode);
+    dbg!("after set mode");
     fs::set_permissions(file, perm)?;
+    dbg!("after set perm");
 
     Ok(())
 }
