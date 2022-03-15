@@ -34,6 +34,7 @@ pub fn create_file_with_user_group(grp_user: &str, files: Vec<&str>) -> Result<(
     for file in files {
         match File::create(file) {
             Ok(_) => {
+                dbg!("created successfully");
                 change_owner_and_permission(file, grp_user, 0o644)?;
             }
             Err(e) => {
@@ -82,28 +83,30 @@ mod tests {
     use std::os::unix::fs::PermissionsExt;
     use std::path::Path;
     #[test]
-    fn create_file() {
+    fn create_file()->anyhow::Result<()> {
         let user = whoami::username();
         let ruser = whoami::realname();
         dbg!(&user);
         dbg!(&ruser);
-        let _ = create_file_with_user_group(&user, vec!["/home/runner/fcreate_test"]).unwrap();
+        let _ = create_file_with_user_group(&user, vec!["/home/runner/fcreate_test"])?;
         assert!(Path::new("/home/runner/fcreate_test").exists());
-        let meta = std::fs::metadata("/home/runner/fcreate_test").unwrap();
+        let meta = std::fs::metadata("/home/runner/fcreate_test")?;
         let perm = meta.permissions();
         println!("{:o}", perm.mode());
         assert!(format!("{:o}", perm.mode()).contains("644"));
+        Ok(())
     }
 
     #[test]
-    fn create_directory() {
+    fn create_directory()->anyhow::Result<()>  {
         let user = whoami::username();
         dbg!(&user);
-        let _ = create_directory_with_user_group(&user, vec!["/tmp/fcreate_test_dir"]).unwrap();
+        let _ = create_directory_with_user_group(&user, vec!["/tmp/fcreate_test_dir"])?;
         assert!(Path::new("/tmp/fcreate_test_dir").exists());
         let meta = std::fs::metadata("/tmp/fcreate_test_dir").unwrap();
         let perm = meta.permissions();
         println!("{:o}", perm.mode());
         assert!(format!("{:o}", perm.mode()).contains("775"));
+        Ok(())
     }
 }
