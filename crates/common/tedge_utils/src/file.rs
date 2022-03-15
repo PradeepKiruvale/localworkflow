@@ -18,7 +18,7 @@ pub fn create_directory_with_user_group(
                 if e.kind() == io::ErrorKind::AlreadyExists {
                     return Ok(());
                 } else {
-                    eprintln!(
+                    dbg!(
                         "failed to create the directory {} due to error {}",
                         directory, e
                     );
@@ -40,7 +40,7 @@ pub fn create_file_with_user_group(grp_user: &str, files: Vec<&str>) -> Result<(
                 if e.kind() == io::ErrorKind::AlreadyExists {
                     return Ok(());
                 } else {
-                    eprintln!("failed to create the file {} due to error {}", file, e);
+                    dbg!("failed to create the file {} due to error {}", file, e);
                     return Err(e.into());
                 }
             }
