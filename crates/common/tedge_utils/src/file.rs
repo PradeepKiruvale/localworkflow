@@ -84,17 +84,19 @@ mod tests {
     #[test]
     fn create_file() {
         let user = whoami::username();
+        dbg!(&user);
         let _ = create_file_with_user_group(&user, vec!["/tmp/fcreate_test"]).unwrap();
         assert!(Path::new("/tmp/fcreate_test").exists());
         let meta = std::fs::metadata("/tmp/fcreate_test").unwrap();
         let perm = meta.permissions();
         println!("{:o}", perm.mode());
-        assert!(format!("{:o}", perm.mode()).contains("644"));      
+        assert!(format!("{:o}", perm.mode()).contains("644"));
     }
 
     #[test]
     fn create_directory() {
         let user = whoami::username();
+        dbg!(&user);
         let _ = create_directory_with_user_group(&user, vec!["/tmp/fcreate_test_dir"]).unwrap();
         assert!(Path::new("/tmp/fcreate_test_dir").exists());
         let meta = std::fs::metadata("/tmp/fcreate_test_dir").unwrap();
