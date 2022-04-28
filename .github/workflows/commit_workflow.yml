@@ -1,5 +1,4 @@
 name: commit-workflow
-
 on:
   workflow_dispatch:
     branches: [main]
