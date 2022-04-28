@@ -46,4 +46,4 @@ jobs:
 
         with:
           command: test
-          args: -p tedge_mapper -- --nocapture
+          args: -- --nocapture
