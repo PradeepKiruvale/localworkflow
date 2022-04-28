@@ -1,67 +1,50 @@
-
 name: commit-workflow
-	
 
-	on: 
-	  workflow_dispatch:
-	    branches: [main]  
-	
+on:
+  workflow_dispatch:
+    branches: [main]
 
-	env:
-	  CARGO_TERM_COLOR: always
-	
+env:
+  CARGO_TERM_COLOR: always
+jobs:
+  cargo-test:
+    name: Run cargo test
+    runs-on: Ubuntu-20.04
 
-	jobs:
-	    
-	  cargo-test:
-	    name: Run cargo test
-	    runs-on: Ubuntu-20.04
-	
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-	    steps:
-	      - name: Checkout
-	        uses: actions/checkout@v2
-	
+      - name: enable toolchain via github action
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.58.1
+          override: true
 
-	      - name: enable toolchain via github action
-	        uses: actions-rs/toolchain@v1
-	        with:
-	          toolchain: 1.58.1
-	          override: true
-	
+      - name: Enable cache
+        # https://github.com/marketplace/actions/rust-cache
 
-	      - name: Enable cache
-	        # https://github.com/marketplace/actions/rust-cache
+        uses: Swatinem/rust-cache@v1
 
-	        uses: Swatinem/rust-cache@v1
-	
+      - name: Cargo version
+        uses: actions-rs/cargo@v1
+        # https://github.com/marketplace/actions/rust-cargo
 
-	      - name: Cargo version
-	        uses: actions-rs/cargo@v1
-	        # https://github.com/marketplace/actions/rust-cargo
+        with:
+          command: version
 
-	        with:
-	          command: version
-	          
-	      - name: Cargo build dummy plugin
-	        uses: actions-rs/cargo@v1
-	        # https://github.com/marketplace/actions/rust-cargo
+      - name: Cargo build dummy plugin
+        uses: actions-rs/cargo@v1
+        # https://github.com/marketplace/actions/rust-cargo
 
-	        with:
-	          command: build
-	          args: -p tedge_dummy_plugin
-	 
-	
+        with:
+          command: build
+          args: -p tedge_dummy_plugin
 
-	      - name: Cargo test
-	        uses: actions-rs/cargo@v1
-	        # https://github.com/marketplace/actions/rust-cargo
+      - name: Cargo test
+        uses: actions-rs/cargo@v1
+        # https://github.com/marketplace/actions/rust-cargo
 
-	        with:
-	          command: test
-	          args: -- create_directory create_file -- --nocapture
-
-
-
- 
-
+        with:
+          command: test
+          args: -- create_directory create_file -- --nocapture
