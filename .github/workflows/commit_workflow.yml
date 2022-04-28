@@ -46,4 +46,4 @@ jobs:
 
         with:
           command: test
-          args: -- create_directory create_file -- --nocapture
+          args: -p tedge_mapper -- --nocapture
