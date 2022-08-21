@@ -8,6 +8,7 @@ use time::{Duration, OffsetDateTime};
 use zeroize::Zeroizing;
 
 pub mod device_id;
+pub mod parse_root_certificate;
 pub struct PemCertificate {
     pem: x509_parser::pem::Pem,
 }
@@ -162,6 +163,12 @@ pub enum CertificateError {
 
     #[error("DeviceID Error")]
     InvalidDeviceID(#[from] DeviceIdError),
+
+    #[error("Fail to parse the private key")]
+    UnknownPrivateKeyFormat,
+
+    #[error("Could not parse certificate")]
+    RumqttcCertificate,
 }
 
 pub struct NewCertificateConfig {
