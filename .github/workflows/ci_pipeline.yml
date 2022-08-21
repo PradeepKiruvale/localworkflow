@@ -1,0 +1,69 @@
+name: ci_pipeline
+
+# All in one ci pipeline
+#  Note that the jobs system-test_offsite_{abcd} , install-and-use-rpi_m32sd10{abcd}
+#  are there four times and are almost identical. They only differ in a character
+#  a,b,c,d that we use to select a runner.
+#
+# TODO: Smoke testing on Azure is disabled, we should check if it works out
+#   with 4 runners in parallel or enable only one
+
+on:
+  push:
+    branches: [ main, 'release-*' ]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  build-amd64:
+    name: Build for amd64
+    runs-on: Ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Enable toolchain via github action
+        uses: dtolnay/rust-toolchain@1.63.0
+
+      - name: Enable cache
+        # https://github.com/marketplace/actions/rust-cache
+        uses: Swatinem/rust-cache@v1
+
+      - name: Build packages for amd64
+        run: ./ci/build_scripts/build_for_amd64.sh
+
+      - name: Upload artifacts as zip
+        # https://github.com/marketplace/actions/upload-a-build-artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-packages-amd64
+          path: target/debian/*.deb
+
+#################################################################################
+
+  install-and-use-amd64:
+    name: Install artifacts on amd64
+    runs-on: Ubuntu-20.04
+    needs: build-amd64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v3
+        # https://github.com/marketplace/actions/download-a-build-artifact
+        with:
+          name: debian-packages-amd64
+          path: debian-package_unpack
+
+      - name: Install artifacts on amd64
+        run: ./ci/installation_scripts/install_for_amd64.sh debian-package_unpack
+
+      - name: Run tedge help
+        run: tedge --help
+
+##################################################################################
