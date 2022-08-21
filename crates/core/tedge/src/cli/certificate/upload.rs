@@ -1,5 +1,6 @@
-use super::error::{get_webpki_error_from_reqwest, CertError};
+use super::error::CertError;
 use crate::command::Command;
+use certificate::get_webpki_error_from_reqwest;
 use reqwest::{StatusCode, Url};
 use std::{io::prelude::*, path::Path};
 use tedge_config::*;

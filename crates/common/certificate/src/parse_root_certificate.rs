@@ -62,7 +62,9 @@ pub fn parse_rsa_key(key_file: PathBuf) -> Result<rustls_0_19::PrivateKey, Certi
     }
 }
 
-pub fn read_cert_chain(cert_file: PathBuf) -> Result<Vec<rustls_0_19::Certificate>, CertificateError> {
+pub fn read_cert_chain(
+    cert_file: PathBuf,
+) -> Result<Vec<rustls_0_19::Certificate>, CertificateError> {
     let f = File::open(cert_file)?;
     let mut cert_reader = BufReader::new(f);
     certs(&mut cert_reader).map_err(|_| CertificateError::RumqttcCertificate)

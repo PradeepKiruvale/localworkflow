@@ -1,6 +1,6 @@
 use super::{BridgeConfig, ConnectError};
-use rumqttc::{self, Client, Event, Incoming, MqttOptions, Outgoing, Packet, QoS, Transport};
 use certificate::parse_root_certificate::*;
+use rumqttc::{self, Client, Event, Incoming, MqttOptions, Outgoing, Packet, QoS, Transport};
 
 // Connect directly to the c8y cloud over mqtt and publish device create message.
 pub fn create_device_with_direct_connection(

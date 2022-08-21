@@ -1,5 +1,5 @@
+use certificate::PemCertificateError;
 use reqwest::StatusCode;
-use std::error::Error;
 use tedge_config::FilePath;
 use tedge_config::{ConfigSettingError, TEdgeConfigError};
 use tedge_utils::paths::PathsError;
@@ -71,14 +71,14 @@ pub enum CertError {
     #[error(transparent)]
     UrlParseError(#[from] url::ParseError),
 
-    #[error("HTTP Connection Problem: {msg} \nHint: {hint}")]
-    CertificateValidationFailure { hint: String, msg: String },
-
     #[error(transparent)]
     TedgeConfigError(#[from] TEdgeConfigError),
 
     #[error(transparent)]
     TedgeConfigSettingError(#[from] ConfigSettingError),
+
+    #[error(transparent)]
+    PemCertificateError(#[from] PemCertificateError),
 }
 
 impl CertError {
@@ -104,71 +104,5 @@ impl CertError {
             },
             _ => self,
         }
-    }
-}
-
-// Our source of error here is quite deep into the dependencies and we need to dig through that to get to our certificates validator errors which are Box<&dyn Error> through 3-4 levels
-// source: hyper::Error(
-//     Connect,
-//     Custom {
-//         kind: Other,
-//         error: Custom {
-//             kind: InvalidData,
-//             error: InvalidCertificateData(
-//                 ..., // This is where we need to get
-//             ),
-//         },
-//     },
-// )
-// At the last layer we have the InvalidCertificateData error which is a Box<&dyn Error> derived from WebpkiError not included anymore, just as a String
-// This chain may break if underlying crates change.
-pub(crate) fn get_webpki_error_from_reqwest(err: reqwest::Error) -> CertError {
-    if let Some(rustls::Error::InvalidCertificateData(inner)) = err
-        // get `hyper::Error::Connect`
-        .source()
-        .and_then(|err| err.source())
-        // From here the errors are converted from std::io::Error.
-        // `Custom` type is `std::io::Error`; this is our first `Custom`.
-        .and_then(|custom_error| custom_error.downcast_ref::<std::io::Error>())
-        .and_then(|custom_error| custom_error.get_ref())
-        // This is our second `Custom`.
-        .and_then(|custom_error2| custom_error2.downcast_ref::<std::io::Error>())
-        .and_then(|custom_error2| custom_error2.get_ref())
-        // Get final error type from `rustls::Error`.
-        .and_then(|rustls_error| rustls_error.downcast_ref::<rustls::Error>())
-    {
-        match inner {
-            msg if msg.contains("CaUsedAsEndEntity") => CertError::CertificateValidationFailure {
-                hint: "A CA certificate is used as an end-entity server certificate. Make sure that the certificate used is an end-entity certificate signed by CA certificate.".into(),
-                msg: msg.to_string(),
-            },
-
-            msg if msg.contains("CertExpired") => CertError::CertificateValidationFailure {
-                hint: "The server certificate has expired, the time it is being validated for is later than the certificate's `notAfter` time.".into(),
-                msg: msg.to_string(),
-            },
-
-            msg if msg.contains("CertNotValidYet") => CertError::CertificateValidationFailure {
-                hint: "The server certificate is not valid yet, the time it is being validated for is earlier than the certificate's `notBefore` time.".into(),
-                msg: msg.to_string(),
-            },
-
-            msg if msg.contains("EndEntityUsedAsCa") => CertError::CertificateValidationFailure {
-                hint: "An end-entity certificate is used as a server CA certificate. Make sure that the certificate used is signed by a correct CA certificate.".into(),
-                msg: msg.to_string(),
-            },
-
-            msg if msg.contains("InvalidCertValidity") => CertError::CertificateValidationFailure {
-                hint: "The server certificate validity period (`notBefore`, `notAfter`) is invalid, maybe the `notAfter` time is earlier than the `notBefore` time.".into(),
-                msg: msg.to_string(),
-            },
-
-            _ => CertError::CertificateValidationFailure {
-                hint: "Server certificate validation error.".into(),
-                msg: inner.to_string(),
-            },
-        }
-    } else {
-        CertError::ReqwestError(err) // any other Error type than `hyper::Error`
     }
 }
